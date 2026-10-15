@@ -1,4 +1,4 @@
-import {toggle,solved} from './rules.js';import {solve} from './solver.js';
+import {toggle,solved} from './rules.js?v=3';import {solve} from './solver.js?v=3';
 const LIMIT=160;
 export const LEVELS={easy:{size:4,min:2,max:4},medium:{size:5,min:5,max:8},hard:{size:6,min:9,max:14}};
 export function signature(board){return board.map(v=>v?'1':'0').join('');}
