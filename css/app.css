@@ -27,3 +27,6 @@
 #lights-game .difficulty{flex-wrap:wrap}
 #lights-game .difficulty select{min-width:145px}
 @media(max-width:390px){#lights-game .difficulty{gap:7px}#lights-game .difficulty select{min-width:130px;padding:9px}}
+
+.return-home{display:block;margin:16px auto 8px;padding:12px 18px;border:1px solid #6786a6;border-radius:12px;background:#203754;color:#e6f6ff;font-weight:650;min-height:44px;cursor:pointer}
+.return-home:focus-visible{outline:3px solid #ffce8d;outline-offset:3px}
