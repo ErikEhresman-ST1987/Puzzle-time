@@ -1,0 +1,2 @@
+import {toggle,solved} from './rules.js';
+export function solve(board,size=4){if(!Array.isArray(board)||board.length!==size*size||size<2||size>6)throw new RangeError('Unsupported board');let best=null;for(let mask=0;mask<2**size;mask++){let work=board.slice(),press=[];for(let x=0;x<size;x++)if(mask&(1<<x)){work=toggle(work,x,size);press.push(x);}for(let y=1;y<size;y++)for(let x=0;x<size;x++)if(work[(y-1)*size+x]){const i=y*size+x;work=toggle(work,i,size);press.push(i);}if(solved(work)&&(!best||press.length<best.length))best=press;}return best;}
