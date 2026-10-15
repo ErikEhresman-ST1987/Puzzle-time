@@ -9,7 +9,7 @@ Collection menu, PixiJS board, one known-valid 5×5 board, pointer drawing, undo
 Run `npm test` with Node.js 20+. Serve over HTTP; ES modules do not work reliably with `file://`.
 
 ## Dependency limitation
-PixiJS 8.13.2 is pinned via jsDelivr in `index.html`. This is temporary: the Foundation requires a verified locally vendored dependency, which could not be downloaded in this environment. The browser must be online.
+PixiJS 8.21.0 is stored in `vendor/pixi.min.js`, copied from the existing Stranded Colony repository. `index.html` loads it locally, with no PixiJS CDN dependency. Browser behavior remains to be playtested.
 
 ## Ownership
 `js/app.js` owns navigation; `rules.js` owns game truth; `game.js` routes input; `renderer.js` presents it. Generation, solver, difficulty, offline support, and persistence are deferred.
