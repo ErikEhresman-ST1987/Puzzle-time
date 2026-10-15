@@ -1,5 +1,5 @@
 import {mountGame} from '../games/connect-colors/game.js';
-import {mountLightsOut} from '../games/lights-out/game.js';
+import {mountLightsOut} from '../games/lights-out/game.js?v=3';
 const home=document.querySelector('#home'),game=document.querySelector('#game'),host=document.querySelector('#board'),status=document.querySelector('#status'),undo=document.querySelector('#undo');let mounted=null;let opening=false;
 async function open(){if(opening||mounted)return;opening=true;home.classList.add('hidden');game.classList.remove('hidden');status.textContent='Loading puzzle…';try{mounted=await mountGame(host,status,undo);}catch(err){console.error(err);status.textContent='Could not load the puzzle graphics. Please reload while online.';}finally{opening=false;}}
 function back(){mounted?.destroy();mounted=null;game.classList.add('hidden');home.classList.remove('hidden');}
