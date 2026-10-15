@@ -1,0 +1,7 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {toggle,solved,initialBoard,createState,play,undo,restart} from '../games/lights-out/rules.js';
+test('corner toggles exactly three lights',()=>{const b=toggle(Array(16).fill(false),0);assert.deepEqual(b.flatMap((v,i)=>v?[i]:[]),[0,1,4]);});
+test('edge toggles four, center toggles five',()=>{for(const [index,count] of [[1,4],[5,5]])assert.equal(toggle(Array(16).fill(false),index).filter(Boolean).length,count);});
+test('double toggle restores original board',()=>{const b=initialBoard();for(let i=0;i<16;i++)assert.deepEqual(toggle(toggle(b,i),i),b);});
+test('fixed opening is nonempty and solvable by its construction moves',()=>{let b=initialBoard();assert.equal(solved(b),false);for(const i of [0,3,5,10,12,15])b=toggle(b,i);assert.equal(solved(b),true);});
+test('moves, undo, restart and victory',()=>{const s=createState();const original=s.board.slice();play(s,0);assert.equal(s.moves,1);assert.equal(s.history.length,1);assert.equal(undo(s),true);assert.deepEqual(s.board,original);assert.equal(s.moves,0);for(const i of [0,3,5,10,12,15])play(s,i);assert.equal(solved(s.board),true);assert.equal(play(s,1),false);restart(s);assert.equal(s.moves,0);assert.deepEqual(s.board,original);assert.equal(s.history.length,0);});
+test('invalid moves rejected',()=>{assert.throws(()=>toggle(Array(16).fill(false),16),RangeError);assert.throws(()=>createState([true]),Error);});
