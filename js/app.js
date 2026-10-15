@@ -9,7 +9,3 @@ async function openLights(){if(lightsOpening||lightsMounted)return;lightsOpening
 function backLights(){lightsMounted?.destroy();lightsMounted=null;lightsSection.classList.add('hidden');home.classList.remove('hidden');}
 document.querySelector('#open-lights').addEventListener('click',openLights);document.querySelector('#lights-back').addEventListener('click',backLights);document.querySelector('#lights-back-bottom').addEventListener('click',backLights);document.querySelector('#lights-restart').addEventListener('click',()=>lightsMounted?.restart());
 
-const railSection=document.querySelector('#rail-game'),railHost=document.querySelector('#rail-board'),railStatus=document.querySelector('#rail-status');let railMounted=null,railOpening=false;
-async function openRail(){if(railOpening||railMounted)return;railOpening=true;home.classList.add('hidden');railSection.classList.remove('hidden');railStatus.textContent='Loading railway…';try{const {mountRailway}=await import('../games/tiny-railway/game.js?v=6');railMounted=await mountRailway(railHost,railStatus);}catch(err){console.error(err);railStatus.textContent='Could not load the railway. Please reload while online.';}finally{railOpening=false;}}
-function backRail(){railMounted?.destroy();railMounted=null;railSection.classList.add('hidden');home.classList.remove('hidden');}
-document.querySelector('#open-rail').addEventListener('click',openRail);document.querySelector('#rail-back').addEventListener('click',backRail);document.querySelector('#rail-back-bottom').addEventListener('click',backRail);
