@@ -1,1 +1,14 @@
-name: Puzzle rules\non:\n  push:\n    branches: [dev/connect-colors-slice-1, main]\n  pull_request:\njobs:\n  rules:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-node@v4\n        with:\n          node-version: '22'\n      - run: npm test\n
+name: Puzzle rules
+on:
+  push:
+    branches: [dev/connect-colors-slice-1, main]
+  pull_request:
+jobs:
+  rules:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm test
