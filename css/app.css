@@ -30,3 +30,5 @@
 
 .return-home{display:block;margin:16px auto 8px;padding:12px 18px;border:1px solid #6786a6;border-radius:12px;background:#203754;color:#e6f6ff;font-weight:650;min-height:44px;cursor:pointer}
 .return-home:focus-visible{outline:3px solid #ffce8d;outline-offset:3px}
+
+.home .rail-card{margin-top:16px;background:linear-gradient(120deg,#385b58,#304664);border-color:#6c9684}.rail-icon{font-size:52px;letter-spacing:0}#rail-board{width:100%;aspect-ratio:480/330;touch-action:manipulation;overflow:hidden;border-radius:13px;position:relative}#rail-board canvas{display:block;width:100%;height:100%;touch-action:manipulation}.rail-wrap{width:min(100%,620px);background:#234e47;border-color:#658c80}#rail-run{background:#497d68;border-color:#8bb9a1}
