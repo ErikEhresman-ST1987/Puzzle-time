@@ -20,3 +20,10 @@
 .lights-wrap{background:#10243d;border-color:#426c8b}
 #lights-board{width:100%;aspect-ratio:1;touch-action:none;overflow:hidden;border-radius:13px}
 #lights-board canvas{display:block;width:100%;height:100%;touch-action:none}
+
+.lights-strategy{max-width:520px;margin:22px auto 8px;padding:17px 19px;border:1px solid #4b6d88;border-radius:18px;background:#1c314c;color:#e5f1fb;line-height:1.55}
+.lights-strategy strong{color:#a6eeff;font-size:15px}
+.lights-strategy p{font-size:14px;margin:8px 0 0;color:#c5d7eb}
+#lights-game .difficulty{flex-wrap:wrap}
+#lights-game .difficulty select{min-width:145px}
+@media(max-width:390px){#lights-game .difficulty{gap:7px}#lights-game .difficulty select{min-width:130px;padding:9px}}
