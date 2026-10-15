@@ -32,3 +32,5 @@
 .return-home:focus-visible{outline:3px solid #ffce8d;outline-offset:3px}
 
 .home .rail-card{margin-top:16px;background:linear-gradient(120deg,#385b58,#304664);border-color:#6c9684}.rail-icon{font-size:52px;letter-spacing:0}#rail-board{width:100%;aspect-ratio:480/330;touch-action:manipulation;overflow:hidden;border-radius:13px;position:relative}#rail-board canvas{display:block;width:100%;height:100%;touch-action:manipulation}.rail-wrap{width:min(100%,620px);background:#234e47;border-color:#658c80}#rail-run{background:#497d68;border-color:#8bb9a1}
+
+.rail-options{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:10px;margin:10px auto 16px;font-size:14px;color:#d8e6ef}.rail-options select{background:#263d57;color:#fff;border:1px solid #8ca8b7;border-radius:10px;padding:10px 14px;font:inherit;min-height:44px}.rail-options #rail-target{font-weight:600;color:#f6dfac}
