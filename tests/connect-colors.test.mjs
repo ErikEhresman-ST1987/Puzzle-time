@@ -1,7 +1,11 @@
-import test from 'node:test';import assert from 'node:assert/strict';import {SAMPLE,PUZZLES} from '../games/connect-colors/puzzles.js';import {createState,begin,extend,complete,undo,restart,verifyPuzzle} from '../games/connect-colors/rules.js';
+import test from 'node:test';import assert from 'node:assert/strict';import {SAMPLE,PUZZLES} from '../games/connect-colors/puzzles.js';import {generatePuzzle,fallbackPuzzle,makeCandidate} from '../games/connect-colors/generator.js';import {countSolutions} from '../games/connect-colors/solver.js';import {createState,begin,extend,complete,undo,restart,verifyPuzzle} from '../games/connect-colors/rules.js';
 test('sample solution is legal and covers board',()=>assert.equal(verifyPuzzle(SAMPLE),true));
 test('reject nonadjacent moves and foreign endpoints',()=>{const s=createState(SAMPLE);assert.equal(begin(s,'A',[0,0]),true);assert.equal(extend(s,'A',[3,0]),false);assert.equal(extend(s,'A',[0,1]),false);});
 test('undo and restart',()=>{const s=createState(SAMPLE);begin(s,'A',[0,0]);extend(s,'A',[1,0]);undo(s);assert.equal(s.paths.A.length,1);restart(s);assert.equal(s.paths.A.length,0);assert.equal(s.history.length,0);});
 test('incomplete is not complete',()=>assert.equal(complete(createState(SAMPLE)),false));
 test('all sample paths complete',()=>{const s=createState(SAMPLE);for(const [c,path] of Object.entries(SAMPLE.solution)){for(const [i,p] of path.entries())assert.equal(i===0?begin(s,c,p):extend(s,c,p),true);}assert.equal(complete(s),true);});
 test('all twelve layouts have legal full-board solutions',()=>{assert.equal(PUZZLES.length,12);for(const [i,puzzle] of PUZZLES.entries())assert.equal(verifyPuzzle(puzzle),true,`Puzzle ${i+1}`);});
+
+test('generated puzzles are verified and solvable at each difficulty',()=>{for(const level of ['easy','medium','hard']){const result=generatePuzzle(level);assert.ok(result.puzzle,level);assert.equal(verifyPuzzle(result.puzzle),true);const solved=countSolutions(result.puzzle,{limit:1,budget:150000});assert.equal(solved.count,1,level);assert.equal(solved.exhausted,false,level);}});
+test('generation stops at the requested attempt limit and has valid fallbacks',()=>{for(const level of ['easy','medium','hard']){const r=generatePuzzle(level,{attempts:0});assert.equal(r.puzzle,null);assert.equal(r.attempts,0);assert.equal(verifyPuzzle(fallbackPuzzle(level)),true);}});
+test('random full-cover candidates are valid when accepted',()=>{for(let i=0;i<30;i++){const p=makeCandidate(5,4);if(p)assert.equal(verifyPuzzle(p),true);}});
