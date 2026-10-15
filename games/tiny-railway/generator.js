@@ -1,11 +1,11 @@
-import {PUZZLES,route} from './rules.js';
+import {PUZZLES} from './rules.js';
 
 // Deterministic enumeration is separate from candidate construction.
 export function solvePuzzle(puzzle){
  const wins=[];
  for(let mask=0;mask<2**puzzle.switches.length;mask++){
   const switches=puzzle.switches.map((_,i)=>Boolean(mask&(1<<i)));
-  if(route(switches,puzzle).outcome==='win')wins.push(switches);
+  let at='start',seen=new Set(),valid=true;while(at!=='goal'&&!puzzle.endings[at]){if(seen.has(at)){valid=false;break;}seen.add(at);const i=puzzle.switches.findIndex(sw=>sw.node===at);const next=i>=0?puzzle.switches[i].choices[Number(switches[i])]:puzzle.tracks.filter(([from])=>from===at).map(([,to])=>to);if(i<0&&next.length!==1){valid=false;break;}const target=i>=0?next:next[0];if(!puzzle.tracks.some(([a,b])=>a===at&&b===target)){valid=false;break;}at=target;}if(valid&&at==='goal')wins.push(switches);
  }
  return wins;
 }
