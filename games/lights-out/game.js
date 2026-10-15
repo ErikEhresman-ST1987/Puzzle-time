@@ -1,0 +1,6 @@
+import {createState,play,undo,restart,solved} from './rules.js';import {createRenderer} from './renderer.js';
+export async function mountLightsOut(host,status,undoButton){const state=createState(),renderer=await createRenderer(host,state),win=document.querySelector('#lights-win'),winNext=document.querySelector('#lights-win-next'),moves=document.querySelector('#lights-moves');function refresh(){renderer.draw();const done=solved(state.board);moves.textContent=String(state.moves);undoButton.disabled=!state.history.length;win.classList.toggle('hidden',!done);status.textContent=done?'✨ Beautifully done! All the lights are off.':'Tap a light to switch it and its neighbors.';}
+function down(event){if(event.button!==undefined&&event.button!==0)return;const index=renderer.cell(event);if(index===null)return;if(play(state,index))refresh();}
+function onUndo(){if(undo(state))refresh();}
+function onRestart(){restart(state);refresh();}
+host.addEventListener('pointerdown',down);undoButton.addEventListener('click',onUndo);winNext.addEventListener('click',onRestart);refresh();return {restart:onRestart,destroy(){host.removeEventListener('pointerdown',down);undoButton.removeEventListener('click',onUndo);winNext.removeEventListener('click',onRestart);win.classList.add('hidden');renderer.destroy();}};}
