@@ -11,7 +11,7 @@ document.querySelector('#open-lights').addEventListener('click',openLights);docu
 
 
 const sudokuSection=document.querySelector('#sudoku-game');let sudokuMounted=null;
-async function openSudoku(){if(sudokuMounted)return;home.classList.add('hidden');sudokuSection.classList.remove('hidden');try{const {mountMiniSudoku}=await import('../games/mini-sudoku/game.js?v=3');sudokuMounted=mountMiniSudoku();}catch(err){console.error(err);document.querySelector('#sudoku-status').textContent='Could not load Mini Sudoku. Please reload while online.';}}
+async function openSudoku(){if(sudokuMounted)return;home.classList.add('hidden');sudokuSection.classList.remove('hidden');try{const {mountMiniSudoku}=await import('../games/mini-sudoku/game.js?v=4');sudokuMounted=mountMiniSudoku();}catch(err){console.error(err);document.querySelector('#sudoku-status').textContent='Could not load Mini Sudoku. Please reload while online.';}}
 function backSudoku(){sudokuMounted?.destroy();sudokuMounted=null;sudokuSection.classList.add('hidden');home.classList.remove('hidden');}
 document.querySelector('#open-sudoku').addEventListener('click',openSudoku);
 document.querySelector('#sudoku-back').addEventListener('click',backSudoku);
