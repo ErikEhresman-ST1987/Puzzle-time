@@ -12,7 +12,8 @@ export function mountMiniSudoku(){
  else if(loaded.status==='unavailable')saveWarning='Browser storage is unavailable; this puzzle may not be saved.';
  const notesButton=document.querySelector('#sudoku-notes'),undoButton=document.querySelector('#sudoku-undo');
  const persist=()=>{if(!saveProgress(window.localStorage,state))saveWarning='Progress could not be saved on this device.';else saveWarning='';};
- const record=()=>{undoStack.push(snapshot(state.board,state.notes));if(undoStack.length>100)undoStack.shift();};
+ // A resumed board should not replay completion celebrations on mount.
+ previous=new Set(completedGroups(state.board));
  const cells=[];
  for(let i=0;i<36;i++){const cell=document.createElement('button');cell.type='button';cell.className='sudoku-cell';cell.dataset.index=String(i);cell.addEventListener('click',()=>{state.selected=i;hintIndex=null;hintMessage='';render();});host.append(cell);cells.push(cell);}
  function render(){
