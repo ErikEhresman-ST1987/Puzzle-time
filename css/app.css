@@ -47,3 +47,5 @@
 
 .sudoku-cell.sudoku-hint-cell{outline:4px solid #f9dd80;outline-offset:-5px;position:relative;z-index:2;box-shadow:inset 0 0 15px #f9dd8070}
 .sudoku-strategy{max-width:490px;margin:20px auto 8px;padding:17px 19px;border:1px solid #8a7aaf;border-radius:18px;background:#2c3152;color:#e8e7fa;line-height:1.55}.sudoku-strategy>strong{color:#f3d6ff;font-size:15px}.sudoku-strategy p{font-size:14px;margin:9px 0 0;color:#d7d7eb}
+
+.sudoku-mode{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;margin:15px auto;max-width:490px;color:#d1d9ed;font-size:13px}.sudoku-mode .secondary{min-width:142px}.sudoku-mode [aria-pressed=true]{background:#695188;border-color:#d4b2ff;color:#fff}.sudoku-pencil-marks{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr);width:100%;height:100%;align-items:center;justify-items:center;font-size:clamp(9px,2.5vw,14px);line-height:1;color:#b9d5f2;font-weight:600}.sudoku-pencil-marks span{min-width:0}
