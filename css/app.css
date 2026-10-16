@@ -44,3 +44,6 @@
 @keyframes sudoku-flash{0%{filter:brightness(1.8)}100%{filter:brightness(1)}}
 .sudoku-keypad{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:7px;max-width:490px;margin:0 auto 16px}.sudoku-keypad button{min-width:0;min-height:48px;border-radius:12px;border:1px solid #8b9ec4;background:#354d77;color:white;font-weight:800;font-size:20px;cursor:pointer}.sudoku-keypad button:focus-visible{outline:3px solid #ffdba4;outline-offset:2px}.sudoku-keypad .sudoku-erase{grid-column:1/-1;background:#293a5a;font-size:15px}
 @media(prefers-reduced-motion:reduce){.sudoku-cell,.sudoku-cell.just-completed{transition:none;animation:none}}
+
+.sudoku-cell.sudoku-hint-cell{outline:4px solid #f9dd80;outline-offset:-5px;position:relative;z-index:2;box-shadow:inset 0 0 15px #f9dd8070}
+.sudoku-strategy{max-width:490px;margin:20px auto 8px;padding:17px 19px;border:1px solid #8a7aaf;border-radius:18px;background:#2c3152;color:#e8e7fa;line-height:1.55}.sudoku-strategy>strong{color:#f3d6ff;font-size:15px}.sudoku-strategy p{font-size:14px;margin:9px 0 0;color:#d7d7eb}
