@@ -26,10 +26,9 @@ export function transformPuzzle(puzzle,rng=Math.random){
  const bands=shuffle([0,1,2],rng),stacks=shuffle([0,1],rng);
  const rowOrder=bands.flatMap(b=>shuffle([2*b,2*b+1],rng));
  const colOrder=stacks.flatMap(s=>shuffle([3*s,3*s+1,3*s+2],rng));
- const transpose=rng()<.5;
  return Array.from({length:36},(_,i)=>{
   const r=Math.floor(i/6),c=i%6;
-  const old=transpose?rowOrder[c]*6+colOrder[r]:rowOrder[r]*6+colOrder[c];
+  const old=rowOrder[r]*6+colOrder[c];
   const n=puzzle[old];return n?digits[n-1]:0;
  });
 }
