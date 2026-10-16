@@ -9,3 +9,10 @@ async function openLights(){if(lightsOpening||lightsMounted)return;lightsOpening
 function backLights(){lightsMounted?.destroy();lightsMounted=null;lightsSection.classList.add('hidden');home.classList.remove('hidden');}
 document.querySelector('#open-lights').addEventListener('click',openLights);document.querySelector('#lights-back').addEventListener('click',backLights);document.querySelector('#lights-back-bottom').addEventListener('click',backLights);document.querySelector('#lights-restart').addEventListener('click',()=>lightsMounted?.restart());
 
+
+const sudokuSection=document.querySelector('#sudoku-game');let sudokuMounted=null;
+async function openSudoku(){if(sudokuMounted)return;home.classList.add('hidden');sudokuSection.classList.remove('hidden');try{const {mountMiniSudoku}=await import('../games/mini-sudoku/game.js?v=1');sudokuMounted=mountMiniSudoku();}catch(err){console.error(err);document.querySelector('#sudoku-status').textContent='Could not load Mini Sudoku. Please reload while online.';}}
+function backSudoku(){sudokuMounted?.destroy();sudokuMounted=null;sudokuSection.classList.add('hidden');home.classList.remove('hidden');}
+document.querySelector('#open-sudoku').addEventListener('click',openSudoku);
+document.querySelector('#sudoku-back').addEventListener('click',backSudoku);
+document.querySelector('#sudoku-back-bottom').addEventListener('click',backSudoku);
