@@ -1,3 +1,4 @@
+import {generatePuzzle} from './generator.js';
 import {nextDeduction} from './difficulty.js';
 import {createState,enter,restart,rows,columns,boxes,completedGroups,conflicts,isSolved} from './rules.js';
 export function mountMiniSudoku(){
@@ -31,18 +32,20 @@ export function mountMiniSudoku(){
   if(pulse.size){pulseTimer=setTimeout(()=>{pulse.clear();render();pulseTimer=null;},650);}
  }
  function input(n){if(state.selected===null||isSolved(state.board))return; if(enter(state,state.selected,n)){hintIndex=null;hintMessage='';update();}}
- function reset(level=state.level){state=createState(level);previous=new Set();pulse.clear();hintIndex=null;hintMessage='';update();}
+ function reset(level=state.level,board=null){state=createState(level);if(board){state.initial=board.slice();state.board=board.slice();}previous=new Set();pulse.clear();hintIndex=null;hintMessage='';update();}
  const keypad=document.querySelector('#sudoku-keypad');
  const onKeypad=e=>{const b=e.target.closest('button[data-number]');if(b)input(Number(b.dataset.number));};
  const onRestart=()=>{restart(state);previous=new Set();pulse.clear();hintIndex=null;hintMessage='';update();};
  const onHint=()=>{if(isSolved(state.board))return;const hint=nextDeduction(state.board);hintIndex=hint.index??null;hintMessage=hint.message;render();};
  const onDifficulty=()=>reset(levelSelect.value);
+ const onNew=()=>{if(state.board.some((n,i)=>n!==state.initial[i])&&!isSolved(state.board)&&!window.confirm('Start a new puzzle? Your current entries will be lost.'))return;try{const result=generatePuzzle(state.level,state.initial);reset(state.level,result.board);}catch(err){console.error(err);hintMessage='Could not create a new puzzle. Please try again.';render();}};
  const onKeyboard=e=>{if(document.querySelector('#sudoku-game').classList.contains('hidden'))return;if(e.target instanceof HTMLInputElement||e.target instanceof HTMLSelectElement)return;if(/^[1-6]$/.test(e.key))input(Number(e.key));else if(e.key==='Backspace'||e.key==='Delete')input(0);};
  keypad.addEventListener('click',onKeypad);
  document.querySelector('#sudoku-hint').addEventListener('click',onHint);
+ document.querySelector('#sudoku-next').addEventListener('click',onNew);
  document.querySelector('#sudoku-restart').addEventListener('click',onRestart);
  levelSelect.addEventListener('change',onDifficulty);
  document.addEventListener('keydown',onKeyboard);
  update();
- return {destroy(){if(pulseTimer!==null)clearTimeout(pulseTimer);keypad.removeEventListener('click',onKeypad);document.querySelector('#sudoku-hint').removeEventListener('click',onHint);document.querySelector('#sudoku-restart').removeEventListener('click',onRestart);levelSelect.removeEventListener('change',onDifficulty);document.removeEventListener('keydown',onKeyboard);host.replaceChildren();win.classList.add('hidden');},restart:onRestart};
+ return {destroy(){if(pulseTimer!==null)clearTimeout(pulseTimer);keypad.removeEventListener('click',onKeypad);document.querySelector('#sudoku-hint').removeEventListener('click',onHint);document.querySelector('#sudoku-next').removeEventListener('click',onNew);document.querySelector('#sudoku-restart').removeEventListener('click',onRestart);levelSelect.removeEventListener('change',onDifficulty);document.removeEventListener('keydown',onKeyboard);host.replaceChildren();win.classList.add('hidden');},restart:onRestart};
 }
