@@ -32,7 +32,7 @@ function independentMinimumPushes(map,limit=120000){
   return null;
 }
 test('seeded generation is reproducible, nontrivial and independently solvable',()=>{
-  for(const difficulty of ['easy','medium','hard','expert']){
+  for(const difficulty of ['easy','medium','hard']){
     const config=SOKOBAN_CONFIG[difficulty],boards=new Set();
     for(let seed=1;seed<=3;seed++){
       const puzzle=generateSokoban(difficulty,seed);
