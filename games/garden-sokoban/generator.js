@@ -25,7 +25,7 @@ function build(random,cfg){
   const free=shuffle([...area].filter(p=>!crates.has(p)),random);
   let player=free[0],pulls=0;
   const snapshots=[];
-  for(let turn=0;turn<cfg.pulls*3;turn++){
+  for(let turn=0;turn<cfg.pulls;turn++){
     const walk=reachable(player,crates,walls),options=[];
     for(const c of crates)for(const d of DIR){
       const beside=c+d,beyond=c+2*d;
@@ -34,7 +34,7 @@ function build(random,cfg){
     if(!options.length)break;
     const pick=shuffle(options,random)[0];
     crates.delete(pick[0]);crates.add(pick[1]);player=pick[2];pulls++;
-    if(pulls>=cfg.pulls/2&&pulls%3===0)snapshots.push({player,crates:[...crates]});
+    if(pulls>=cfg.pulls/2&&pulls%5===0)snapshots.push({player,crates:[...crates]});
   }
   if(pulls<cfg.pulls/2)return null;
   snapshots.push({player,crates:[...crates]});
@@ -120,7 +120,7 @@ export function generateSokoban(difficulty='medium',seed=1,options={}){
   for(let attempt=0;attempt<attempts&&Date.now()<deadline;attempt++){
     const base=build(random,cfg);
     if(!base)continue;
-    for(const candidate of base.snapshots.slice().reverse()){
+    for(const candidate of base.snapshots.slice(-3).reverse()){
       if(Date.now()>deadline)return null;
       const rating=solveSokoban({...base,...candidate},cfg.maxStates,deadline);
       if(!rating||rating.pushes<cfg.minPushes||rating.turns<cfg.minTurns||rating.switches<cfg.minSwitches)continue;
