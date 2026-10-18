@@ -85,8 +85,9 @@ export function solveSokoban(layout,limit=3000){
     if(boxes.every(b=>targets.has(b))){
       let turns=0,switches=0;
       for(let i=1;i<trace.length;i++){
-        if(trace[i][0]!==trace[i-1][0])switches++;
-        if(trace[i][1]!==trace[i-1][1])turns++;
+        const sameCrate=trace[i][0]===trace[i-1][0]+trace[i-1][1];
+        if(!sameCrate)switches++;
+        if(sameCrate&&trace[i][1]!==trace[i-1][1])turns++;
       }
       return {pushes:g,states:expanded,turns,switches};
     }
