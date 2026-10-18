@@ -1,48 +1,70 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createState,parseLevel,isSolved} from '../games/garden-sokoban/rules.js';
-import {SOKOBAN_LEVELS} from '../games/garden-sokoban/levels.js';
+import {createState,isSolved,parseLevel} from '../games/garden-sokoban/rules.js';
+import {generateSokoban,solveSokoban,SOKOBAN_CONFIG} from '../games/garden-sokoban/generator.js';
 
-function shortestSolution(map){
-  const initial=createState(map);
-  const queue=[[initial.player,[...initial.crates].sort((a,b)=>a-b),0]];
-  const visited=new Set();
-  const deltas=[-100,100,-1,1];
-  for(let head=0;head<queue.length&&head<220000;head++){
-    const [player,crates,steps]=queue[head];
-    const signature=player+'|'+crates.join(',');
-    if(visited.has(signature))continue;
-    visited.add(signature);
-    if(crates.every(c=>initial.targets.has(c)))return steps;
-    for(const d of deltas){
-      const next=player+d;
-      if(initial.walls.has(next))continue;
-      let nextCrates=crates;
-      if(crates.includes(next)){
-        const beyond=next+d;
-        if(initial.walls.has(beyond)||crates.includes(beyond))continue;
-        nextCrates=crates.filter(c=>c!==next).concat(beyond).sort((a,b)=>a-b);
-      }
-      queue.push([next,nextCrates,steps+1]);
+const DELTAS=[-100,100,-1,1];
+function forwardReachable(start,crates,walls){
+  const q=[start],seen=new Set(q);
+  for(let i=0;i<q.length;i++)for(const d of DELTAS){
+    const n=q[i]+d;
+    if(!seen.has(n)&&!walls.has(n)&&!crates.has(n)){seen.add(n);q.push(n);}
+  }
+  return seen;
+}
+// Independent breadth-first push solver: validates generator claims without trusting A*.
+function independentMinimumPushes(map,limit=30000){
+  const initial=createState(map),queue=[[initial.player,[...initial.crates].sort((a,b)=>a-b),0]],seen=new Set();
+  for(let head=0;head<queue.length&&head<limit;head++){
+    const [player,boxes,pushes]=queue[head],set=new Set(boxes);
+    const region=forwardReachable(player,set,initial.walls);
+    const id=boxes.join(',')+'|'+Math.min(...region);
+    if(seen.has(id))continue;
+    seen.add(id);
+    if(boxes.every(b=>initial.targets.has(b)))return pushes;
+    for(const crate of boxes)for(const d of DELTAS){
+      if(!region.has(crate-d)||initial.walls.has(crate+d)||set.has(crate+d))continue;
+      const next=boxes.map(b=>b===crate?crate+d:b).sort((a,b)=>a-b);
+      queue.push([crate,next,pushes+1]);
     }
   }
   return null;
 }
-test('fifteen unique levels are valid and solvable',()=>{
-  assert.equal(SOKOBAN_LEVELS.length,15);
-  const ids=new Set(),maps=new Set();
-  for(const [index,level] of SOKOBAN_LEVELS.entries()){
-    assert.ok(!ids.has(level.id),'duplicate ID '+level.id);
-    ids.add(level.id);
-    const signature=level.map.join('|');
-    assert.ok(!maps.has(signature),'duplicate board '+level.id);
-    maps.add(signature);
-    const parsed=parseLevel(level.map);
-    assert.ok(parsed.width<=8&&parsed.height<=8,'board too large for first collection');
-    assert.equal(isSolved(createState(level.map)),false,'already solved '+level.id);
-    const solution=shortestSolution(level.map);
-    assert.ok(solution!==null,'unsolvable '+level.id);
-    assert.ok(solution>=1,'no gameplay '+level.id);
-    if(index>=10)assert.ok(solution>=5,'hard puzzle is too trivial '+level.id);
+test('seeded generation is reproducible, nontrivial and independently solvable',()=>{
+  for(const difficulty of ['easy','medium','hard']){
+    const config=SOKOBAN_CONFIG[difficulty],boards=new Set();
+    for(let seed=1;seed<=6;seed++){
+      const puzzle=generateSokoban(difficulty,seed);
+      assert.ok(puzzle,`generation failed: ${difficulty} seed ${seed}`);
+      assert.deepEqual(generateSokoban(difficulty,seed),puzzle,'same seed should recreate board');
+      const parsed=parseLevel(puzzle.map);
+      assert.equal(parsed.crates,undefined);
+      assert.equal(parsed.initialCrates.size,config.crates);
+      assert.equal(parsed.targets.size,config.crates);
+      assert.equal(parsed.width,config.size);
+      assert.equal(parsed.height,config.size);
+      assert.equal(isSolved(createState(puzzle.map)),false);
+      assert.ok(!boards.has(puzzle.map.join('|')),'duplicate generated board');
+      boards.add(puzzle.map.join('|'));
+      const optimal=independentMinimumPushes(puzzle.map);
+      assert.ok(optimal!==null,`no solution: ${difficulty} seed ${seed}`);
+      assert.ok(optimal>=config.minPushes,`too easy: ${difficulty} seed ${seed} (${optimal} pushes)`);
+      assert.equal(puzzle.pushes,optimal,'generator difficulty estimate must match independent solver');
+      const state=createState(puzzle.map);
+      const aStar=solveSokoban({walls:state.walls,targets:state.targets,player:state.player,crates:[...state.crates]},config.maxStates);
+      assert.equal(aStar?.pushes,optimal);
+    }
+  }
+});
+test('verified backup layouts have meaningful solutions',()=>{
+  const backups={
+    easy:['########','#   .  #','# #@#  #','#  $ $ #','# .    #','#    # #','#      #','########'],
+    medium:['########','# .  $@#','# # ## #','#  .#  #','#  $ $ #','#.   # #','#      #','########'],
+    hard:['#########','#      .#','# $# #  #','#   #  .#','# $# $* #','#  # #@ #','#     # #','#   .   #','#########']
+  };
+  for(const [difficulty,map] of Object.entries(backups)){
+    parseLevel(map);
+    const min=independentMinimumPushes(map);
+    assert.ok(min>=SOKOBAN_CONFIG[difficulty].minPushes,`backup ${difficulty} is trivial`);
   }
 });
