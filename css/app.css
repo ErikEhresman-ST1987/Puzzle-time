@@ -62,3 +62,8 @@
 .sokoban-controls button:active{background:#58946b}
 .sokoban-controls button:focus-visible{outline:3px solid #ffdf9e;outline-offset:2px}
 @media(max-width:390px){.sokoban-controls button{height:54px;width:65px}}
+
+.sokoban-level-picker{width:min(100%,510px);margin:0 auto 14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;color:#d9e8fa;font-size:14px;font-weight:700}
+.sokoban-level-picker select{flex:1;min-width:190px;max-width:100%;padding:12px;border:1px solid #87ad88;border-radius:12px;background:#254d3e;color:#fff;font:inherit}
+#sokoban-progress{font-size:12px;color:#a8d4b2}
+#sokoban-previous:disabled,#sokoban-next:disabled{opacity:.45;cursor:default}
