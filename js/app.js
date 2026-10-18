@@ -26,7 +26,7 @@ async function openSokoban(){
   sokobanSection.classList.remove('hidden');
   document.querySelector('#sokoban-status').textContent='Loading garden…';
   try {
-    const {mountGardenSokoban}=await import('../games/garden-sokoban/game.js?v=3');
+    const {mountGardenSokoban}=await import('../games/garden-sokoban/game.js?v=4');
     sokobanMounted=await mountGardenSokoban();
   } catch(err) {
     console.error(err);
