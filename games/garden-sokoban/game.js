@@ -45,7 +45,7 @@ export async function mountGardenSokoban(){
   let completed=Array.isArray(saved?.completed)?saved.completed.filter(s=>typeof s==='string').slice(-200):[];
   let seen=Array.isArray(saved?.seen)?saved.seen.filter(s=>typeof s==='string').slice(-35):[];
   let map=null,state=null,renderer=null,worker=null,disposed=false,pending=false;
-  let moves=[],startPoint=null,requestId=0,backupActive=false;
+  let moves=[],startPoint=null,requestId=0,backupActive=false,generationTimer=null;
   difficultyPicker.value=difficulty;
   const directions={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right',w:'up',s:'down',a:'left',d:'right'};
   const signature=lines=>lines.join('|');
@@ -90,7 +90,14 @@ export async function mountGardenSokoban(){
   }
   function finishGeneration(result){
     if(disposed)return;
+    clearTimeout(generationTimer);generationTimer=null;
     worker?.terminate();worker=null;
+    if(!result?.map&&state&&renderer){
+      pending=false;
+      refresh();
+      status.textContent='Could not create a challenging puzzle quickly. Your current puzzle is still available; tap New Puzzle to retry.';
+      return;
+    }
     let lines=result?.map;
     backupActive=false;
     try{if(!lines)throw new Error('No generated puzzle');createState(lines);}
@@ -111,6 +118,7 @@ export async function mountGardenSokoban(){
   function newPuzzle(){
     if(disposed)return;
     requestId++;
+    clearTimeout(generationTimer);generationTimer=null;
     worker?.terminate();worker=null;
     pending=true;
     win.classList.add('hidden');
@@ -121,6 +129,7 @@ export async function mountGardenSokoban(){
     try{
       worker=new Worker(new URL('./generator-worker.js',import.meta.url),{type:'module'});
       const thisRequest=requestId;
+      generationTimer=setTimeout(()=>{if(thisRequest===requestId&&!disposed)finishGeneration(null);},4000);
       worker.onmessage=event=>{if(thisRequest!==requestId||disposed)return;finishGeneration(event.data.result);};
       worker.onerror=error=>{console.error('Sokoban generator',error);if(thisRequest===requestId)finishGeneration(null);};
       worker.postMessage({difficulty,seed:seedNumber(),exclude:seen});
@@ -187,6 +196,7 @@ export async function mountGardenSokoban(){
   }else newPuzzle();
   return {restart:onRestart,destroy(){
     disposed=true;requestId++;
+    clearTimeout(generationTimer);generationTimer=null;
     worker?.terminate();worker=null;
     controls.removeEventListener('click',onControl);
     document.removeEventListener('keydown',onKey);
