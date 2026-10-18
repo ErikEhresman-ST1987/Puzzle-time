@@ -16,3 +16,29 @@ function backSudoku(){sudokuMounted?.destroy();sudokuMounted=null;sudokuSection.
 document.querySelector('#open-sudoku').addEventListener('click',openSudoku);
 document.querySelector('#sudoku-back').addEventListener('click',backSudoku);
 document.querySelector('#sudoku-back-bottom').addEventListener('click',backSudoku);
+
+const sokobanSection=document.querySelector('#sokoban-game');
+let sokobanMounted=null,sokobanOpening=false;
+async function openSokoban(){
+  if(sokobanOpening||sokobanMounted)return;
+  sokobanOpening=true;
+  home.classList.add('hidden');
+  sokobanSection.classList.remove('hidden');
+  document.querySelector('#sokoban-status').textContent='Loading garden…';
+  try {
+    const {mountGardenSokoban}=await import('../games/garden-sokoban/game.js?v=1');
+    sokobanMounted=await mountGardenSokoban();
+  } catch(err) {
+    console.error(err);
+    document.querySelector('#sokoban-status').textContent='Could not load Garden Sokoban. Please reload the page.';
+  } finally {sokobanOpening=false;}
+}
+function backSokoban(){
+  sokobanMounted?.destroy();
+  sokobanMounted=null;
+  sokobanSection.classList.add('hidden');
+  home.classList.remove('hidden');
+}
+document.querySelector('#open-sokoban').addEventListener('click',openSokoban);
+document.querySelector('#sokoban-back').addEventListener('click',backSokoban);
+document.querySelector('#sokoban-back-bottom').addEventListener('click',backSokoban);
