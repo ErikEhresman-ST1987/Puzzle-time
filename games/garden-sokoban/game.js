@@ -38,7 +38,7 @@ export async function mountGardenSokoban() {
     if(event.button!==undefined&&event.button!==0)return;
     startPoint={id:event.pointerId,x:event.clientX,y:event.clientY};
   }
-  function onPointerUp(event) {
+  function onPointerCancel(){startPoint=null;}\n  function onPointerUp(event) {
     if(!startPoint||startPoint.id!==event.pointerId)return;
     const dx=event.clientX-startPoint.x,dy=event.clientY-startPoint.y;
     startPoint=null;
@@ -52,7 +52,7 @@ export async function mountGardenSokoban() {
   document.addEventListener('keydown',onKey);
   host.addEventListener('pointerdown',onPointerDown);
   host.addEventListener('pointerup',onPointerUp);
-  host.addEventListener('pointercancel',()=>{startPoint=null;});
+  host.addEventListener('pointercancel',onPointerCancel);
   undoButton.addEventListener('click',onUndo);
   restartButton.addEventListener('click',onRestart);
   refresh();
@@ -60,7 +60,7 @@ export async function mountGardenSokoban() {
     controls.removeEventListener('click',onControl);
     document.removeEventListener('keydown',onKey);
     host.removeEventListener('pointerdown',onPointerDown);
-    host.removeEventListener('pointerup',onPointerUp);
+    host.removeEventListener('pointerup',onPointerUp);\n    host.removeEventListener('pointercancel',onPointerCancel);
     undoButton.removeEventListener('click',onUndo);
     restartButton.removeEventListener('click',onRestart);
     win.classList.add('hidden');
