@@ -12,7 +12,6 @@ const BACKUP={
     ['########','#    ..#','#  $   #','#  ### #','#  #   #','# $ #$ #','# @  . #','########'],
     ['########','#$@   .#','#*     #','# # #  #','# #  # #','#.#  $ #','#      #','########']
   ],
-  expert:[],
   hard:[
     ['#########','#      .#','# $# #  #','#   #  .#','# $# $* #','#  # #@ #','#     # #','#   .   #','#########'],
     ['#########','#    .  #','# $ $   #','# $   . #','#  #### #','# #@ # .#','#  $#   #','#      .#','#########']
@@ -57,7 +56,7 @@ export async function mountGardenSokoban(){
   const newButton=document.querySelector('#sokoban-new');
   const progressLabel=document.querySelector('#sokoban-progress');
   const saved=readSaved();
-  const validDifficulties=['easy','medium','hard','expert'];
+  const validDifficulties=['easy','medium','hard'];
   let difficulty=validDifficulties.includes(saved?.difficulty)?saved.difficulty:'hard';
   let completed=Array.isArray(saved?.completed)?saved.completed.filter(s=>typeof s==='string').slice(-200):[];
   let seen=Array.isArray(saved?.seen)?saved.seen.filter(s=>typeof s==='string').slice(-100):[];
@@ -83,7 +82,7 @@ export async function mountGardenSokoban(){
     restartButton.disabled=pending;
     newButton.disabled=pending;
     progressLabel.textContent=`${completed.length} completed`;
-    if(!pending)status.textContent=done?'Garden complete! Select New Puzzle for another challenge.':backupActive?`${difficulty==='expert'?'Verified Hard fallback':'Verified backup'} · ${state.history.length} moves · Select New Puzzle to retry generation.`:`${difficulty[0].toUpperCase()+difficulty.slice(1)} · ${state.history.length} moves · Every puzzle is solver-checked.`;
+    if(!pending)status.textContent=done?'Garden complete! Select New Puzzle for another challenge.':backupActive?`Verified backup · ${state.history.length} moves · Select New Puzzle to retry generation.`:`${difficulty[0].toUpperCase()+difficulty.slice(1)} · ${state.history.length} moves · Every puzzle is solver-checked.`;
   }
   async function applyMap(lines,restoredMoves=[]){
     const fresh=createState(lines);
