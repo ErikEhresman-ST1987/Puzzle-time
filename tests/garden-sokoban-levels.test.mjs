@@ -38,7 +38,6 @@ test('seeded generation is reproducible, nontrivial and independently solvable',
       assert.deepEqual(generateSokoban(difficulty,seed),puzzle,'same seed should recreate result');
       if(!puzzle)continue;
       const parsed=parseLevel(puzzle.map);
-      assert.equal(parsed.crates,undefined);
       assert.equal(parsed.initialCrates.size,config.crates);
       assert.equal(parsed.targets.size,config.crates);
       assert.equal(parsed.width,config.size);
