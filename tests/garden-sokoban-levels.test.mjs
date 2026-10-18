@@ -13,7 +13,7 @@ function forwardReachable(start,crates,walls){
   return seen;
 }
 // Independent breadth-first push solver: validates generator claims without trusting A*.
-function independentMinimumPushes(map,limit=30000){
+function independentMinimumPushes(map,limit=400000){
   const initial=createState(map),queue=[[initial.player,[...initial.crates].sort((a,b)=>a-b),0]],seen=new Set();
   for(let head=0;head<queue.length&&head<limit;head++){
     const [player,boxes,pushes]=queue[head],set=new Set(boxes);
