@@ -49,3 +49,16 @@
 .sudoku-strategy{max-width:490px;margin:20px auto 8px;padding:17px 19px;border:1px solid #8a7aaf;border-radius:18px;background:#2c3152;color:#e8e7fa;line-height:1.55}.sudoku-strategy>strong{color:#f3d6ff;font-size:15px}.sudoku-strategy p{font-size:14px;margin:9px 0 0;color:#d7d7eb}
 
 .sudoku-mode{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;margin:15px auto;max-width:490px;color:#d1d9ed;font-size:13px}.sudoku-mode .secondary{min-width:142px}.sudoku-mode [aria-pressed=true]{background:#695188;border-color:#d4b2ff;color:#fff}.sudoku-pencil-marks{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr);width:100%;height:100%;align-items:center;justify-items:center;font-size:clamp(9px,2.5vw,14px);line-height:1;color:#b9d5f2;font-weight:600}.sudoku-pencil-marks span{min-width:0}
+
+/* Garden Sokoban — first playable increment */
+.home .sokoban-card{margin-top:16px;background:linear-gradient(120deg,#355e4c,#2b465c);border-color:#7baa79}
+.sokoban-icon{font-size:36px;letter-spacing:0;line-height:1.2;background:#244634}
+.sokoban-wrap{width:min(100%,510px);background:#1d4637;border-color:#76a27b;padding:clamp(8px,2.5vw,16px)}
+#sokoban-board{width:100%;aspect-ratio:1;touch-action:none;overflow:hidden;border-radius:12px;background:#204c38}
+#sokoban-board canvas{display:block;width:100%;height:100%;touch-action:none}
+.sokoban-controls{display:flex;flex-direction:column;align-items:center;gap:8px;margin:14px auto 17px;user-select:none}
+.sokoban-control-row{display:flex;gap:8px}
+.sokoban-controls button{width:clamp(64px,18vw,76px);height:58px;border:1px solid #9bc392;border-radius:16px;background:#386b54;color:#fff;font-size:30px;font-weight:800;cursor:pointer;touch-action:manipulation}
+.sokoban-controls button:active{background:#58946b}
+.sokoban-controls button:focus-visible{outline:3px solid #ffdf9e;outline-offset:2px}
+@media(max-width:390px){.sokoban-controls button{height:54px;width:65px}}
