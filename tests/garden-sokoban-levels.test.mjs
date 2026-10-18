@@ -13,18 +13,19 @@ function forwardReachable(start,crates,walls){
   return seen;
 }
 // Independent breadth-first push solver: validates generator claims without trusting A*.
-function independentMinimumPushes(map,limit=1200000){
+function independentMinimumPushes(map,limit=120000){
   const initial=createState(map),queue=[[initial.player,[...initial.crates].sort((a,b)=>a-b),0]],seen=new Set();
   for(let head=0;head<queue.length&&head<limit;head++){
     const [player,boxes,pushes]=queue[head],set=new Set(boxes);
     const region=forwardReachable(player,set,initial.walls);
-    const id=boxes.join(',')+'|'+Math.min(...region);
-    if(seen.has(id))continue;
-    seen.add(id);
     if(boxes.every(b=>initial.targets.has(b)))return pushes;
     for(const crate of boxes)for(const d of DELTAS){
       if(!region.has(crate-d)||initial.walls.has(crate+d)||set.has(crate+d))continue;
       const next=boxes.map(b=>b===crate?crate+d:b).sort((a,b)=>a-b);
+      const nextRegion=forwardReachable(crate,new Set(next),initial.walls);
+      const id=next.join(',')+'|'+Math.min(...nextRegion);
+      if(seen.has(id))continue;
+      seen.add(id);
       queue.push([crate,next,pushes+1]);
     }
   }
