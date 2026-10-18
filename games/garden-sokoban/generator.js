@@ -40,7 +40,7 @@ function build(random,cfg){
   snapshots.push({player,crates:[...crates]});
   return {size,walls,targets,snapshots};
 }
-export function solveSokoban(layout,limit=3000){
+export function solveSokoban(layout,limit=3000,deadline=Infinity){
   const {walls,targets,player,crates}=layout,goals=[...targets];
   function dist(a,b){return Math.abs(a%100-b%100)+Math.abs(Math.floor(a/100)-Math.floor(b/100));}
   function heuristic(boxes){
@@ -81,6 +81,7 @@ export function solveSokoban(layout,limit=3000){
   add(player,crates.slice().sort((a,b)=>a-b),0);
   let expanded=0;
   while(heap.length&&expanded<limit){
+    if((expanded&63)===0&&Date.now()>deadline)return null;
     const {boxes,g,region,trace}=pop();expanded++;
     if(boxes.every(b=>targets.has(b))){
       let turns=0,switches=0;
@@ -112,13 +113,16 @@ function asMap(base,layout){
   }
   return map;
 }
-export function generateSokoban(difficulty='medium',seed=1){
+export function generateSokoban(difficulty='medium',seed=1,options={}){
   const cfg=SOKOBAN_CONFIG[difficulty]||SOKOBAN_CONFIG.medium,random=rng(seed);
-  for(let attempt=0;attempt<cfg.attempts;attempt++){
+  const deadline=Number.isFinite(options.deadline)?options.deadline:Infinity;
+  const attempts=Math.min(cfg.attempts,options.attempts??cfg.attempts);
+  for(let attempt=0;attempt<attempts&&Date.now()<deadline;attempt++){
     const base=build(random,cfg);
     if(!base)continue;
     for(const candidate of base.snapshots.slice().reverse()){
-      const rating=solveSokoban({...base,...candidate},cfg.maxStates);
+      if(Date.now()>deadline)return null;
+      const rating=solveSokoban({...base,...candidate},cfg.maxStates,deadline);
       if(!rating||rating.pushes<cfg.minPushes||rating.turns<cfg.minTurns||rating.switches<cfg.minSwitches)continue;
       return {map:asMap(base,candidate),difficulty,seed,pushes:rating.pushes,turns:rating.turns,switches:rating.switches};
     }
