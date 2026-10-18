@@ -2,8 +2,8 @@
 // The worker runs this module off the UI thread so iPad controls remain responsive.
 const DIR=[-100,100,-1,1];
 export const SOKOBAN_CONFIG={
-  easy:{size:8,crates:2,walls:3,pulls:12,minPushes:5,maxStates:3500,attempts:28},
-  medium:{size:8,crates:3,walls:5,pulls:24,minPushes:9,maxStates:1500,attempts:18},
+  easy:{size:8,crates:2,walls:3,pulls:12,minPushes:7,maxStates:3500,attempts:28},
+  medium:{size:8,crates:3,walls:5,pulls:24,minPushes:11,maxStates:1500,attempts:18},
   hard:{size:9,crates:4,walls:7,pulls:40,minPushes:14,maxStates:3000,attempts:25}
 };
 function rng(seed){let x=(seed>>>0)||0x9e3779b9;return ()=>{x^=x<<13;x^=x>>>17;x^=x<<5;return (x>>>0)/4294967296;};}
