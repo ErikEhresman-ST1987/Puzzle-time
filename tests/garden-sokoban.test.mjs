@@ -38,7 +38,7 @@ test('crate blocked by another crate or wall cannot move',()=>{
   assert.equal(move(wall,'right'),false);
 });
 test('walking, pushing off a target, and restart restore original state',()=>{
-  const s=createState(['######','#@*  #','#    #','######']);
+  const s=createState(['#######','#@* $.#','#     #','#######']);
   assert.equal(move(s,'right'),true);
   assert.equal(isSolved(s),false);
   assert.equal(move(s,'down'),true);
