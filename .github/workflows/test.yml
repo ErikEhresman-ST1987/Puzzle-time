@@ -1,7 +1,7 @@
 name: Puzzle rules
 on:
   push:
-    branches: [dev/connect-colors-slice-1, main]
+    branches: [dev/connect-colors-slice-1, dev/garden-sokoban-smi-1, main]
   pull_request:
 jobs:
   rules:
