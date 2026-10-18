@@ -2,9 +2,10 @@
 // The worker runs this module off the UI thread so iPad controls remain responsive.
 const DIR=[-100,100,-1,1];
 export const SOKOBAN_CONFIG={
-  easy:{size:8,crates:2,walls:3,pulls:12,minPushes:7,maxStates:3500,attempts:28},
-  medium:{size:8,crates:3,walls:5,pulls:24,minPushes:11,maxStates:1500,attempts:18},
-  hard:{size:9,crates:4,walls:7,pulls:40,minPushes:14,maxStates:3000,attempts:25}
+  easy:{size:8,crates:2,walls:3,pulls:12,minPushes:7,maxStates:3500,attempts:28,minTurns:0,minSwitches:0},
+  medium:{size:9,crates:4,walls:7,pulls:40,minPushes:14,maxStates:4500,attempts:32,minTurns:3,minSwitches:2},
+  hard:{size:10,crates:5,walls:9,pulls:65,minPushes:20,maxStates:6500,attempts:38,minTurns:5,minSwitches:4},
+  expert:{size:10,crates:5,walls:12,pulls:90,minPushes:26,maxStates:11000,attempts:48,minTurns:7,minSwitches:6}
 };
 function rng(seed){let x=(seed>>>0)||0x9e3779b9;return ()=>{x^=x<<13;x^=x>>>17;x^=x<<5;return (x>>>0)/4294967296;};}
 function shuffle(a,random){for(let i=a.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
@@ -70,23 +71,30 @@ export function solveSokoban(layout,limit=3000){
     return first;
   }
   const visited=new Map();
-  function add(p,boxes,g){
+  function add(p,boxes,g,trace=[]){
     const region=reachable(p,new Set(boxes),walls);
     const signature=boxes.join(',')+'|'+Math.min(...region);
     if((visited.get(signature)??Infinity)<=g)return;
     visited.set(signature,g);
-    push({p,boxes,g,f:g+heuristic(boxes),region});
+    push({p,boxes,g,f:g+heuristic(boxes),region,trace});
   }
   add(player,crates.slice().sort((a,b)=>a-b),0);
   let expanded=0;
   while(heap.length&&expanded<limit){
-    const {boxes,g,region}=pop();expanded++;
-    if(boxes.every(b=>targets.has(b)))return {pushes:g,states:expanded};
+    const {boxes,g,region,trace}=pop();expanded++;
+    if(boxes.every(b=>targets.has(b))){
+      let turns=0,switches=0;
+      for(let i=1;i<trace.length;i++){
+        if(trace[i][0]!==trace[i-1][0])switches++;
+        if(trace[i][1]!==trace[i-1][1])turns++;
+      }
+      return {pushes:g,states:expanded,turns,switches};
+    }
     const set=new Set(boxes);
     for(const c of boxes)for(const d of DIR){
       const behind=c-d,ahead=c+d;
       if(!region.has(behind)||walls.has(ahead)||set.has(ahead))continue;
-      add(c,boxes.map(b=>b===c?ahead:b).sort((a,b)=>a-b),g+1);
+      add(c,boxes.map(b=>b===c?ahead:b).sort((a,b)=>a-b),g+1,[...trace,[c,d]]);
     }
   }
   return null;
@@ -110,8 +118,8 @@ export function generateSokoban(difficulty='medium',seed=1){
     if(!base)continue;
     for(const candidate of base.snapshots.slice().reverse()){
       const rating=solveSokoban({...base,...candidate},cfg.maxStates);
-      if(!rating||rating.pushes<cfg.minPushes)continue;
-      return {map:asMap(base,candidate),difficulty,seed,pushes:rating.pushes};
+      if(!rating||rating.pushes<cfg.minPushes||rating.turns<cfg.minTurns||rating.switches<cfg.minSwitches)continue;
+      return {map:asMap(base,candidate),difficulty,seed,pushes:rating.pushes,turns:rating.turns,switches:rating.switches};
     }
   }
   return null;
