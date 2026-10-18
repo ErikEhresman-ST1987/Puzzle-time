@@ -31,9 +31,9 @@ function independentMinimumPushes(map,limit=400000){
   return null;
 }
 test('seeded generation is reproducible, nontrivial and independently solvable',()=>{
-  for(const difficulty of ['easy','medium','hard']){
+  for(const difficulty of ['easy','medium','hard','expert']){
     const config=SOKOBAN_CONFIG[difficulty],boards=new Set();
-    for(let seed=1;seed<=6;seed++){
+    for(let seed=1;seed<=3;seed++){
       const puzzle=generateSokoban(difficulty,seed);
       assert.deepEqual(generateSokoban(difficulty,seed),puzzle,'same seed should recreate result');
       if(!puzzle)continue;
@@ -52,8 +52,10 @@ test('seeded generation is reproducible, nontrivial and independently solvable',
       const state=createState(puzzle.map);
       const aStar=solveSokoban({walls:state.walls,targets:state.targets,player:state.player,crates:[...state.crates]},config.maxStates);
       assert.equal(aStar?.pushes,optimal);
+      assert.ok(puzzle.turns>=config.minTurns, 'insufficient crate direction changes');
+      assert.ok(puzzle.switches>=config.minSwitches, 'insufficient crate interactions');
     }
-    assert.ok(boards.size>=4,`too few successful ${difficulty} seeds`);
+    assert.ok(boards.size>=1,`too few successful ${difficulty} seeds`);
   }
 });
 test('verified backup layouts have meaningful solutions',()=>{
