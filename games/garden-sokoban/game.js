@@ -5,11 +5,11 @@ const STORAGE_KEY='puzzle-time-garden-sokoban-v2';
 // Verified backup layouts, used only if a browser cannot start its generation worker.
 const BACKUP={
   easy:[
-    ['########','#   .  #','# #@#  #','#  $ $ #','# .    #','#    # #','#      #','########'],
-    ['########','#      #','#    . #','# #  $ #','#    # #','# # $  #','#   @ .#','########']
+    ['########','#      #','#  ..  #','# #  # #','# $    #','# #  $@#','#      #','########'],
+    ['########','#      #','# #  . #','#  $   #','#.# #  #','#   $@ #','#      #','########']
   ],
   medium:[
-    ['########','# .  $@#','# # ## #','#  .#  #','#  $ $ #','#.   # #','#      #','########'],
+    ['########','#    ..#','#  $   #','#  ### #','#  #   #','# $ #$ #','# @  . #','########'],
     ['########','#$@   .#','#*     #','# # #  #','# #  # #','#.#  $ #','#      #','########']
   ],
   hard:[
@@ -70,7 +70,7 @@ export async function mountGardenSokoban(){
   async function applyMap(lines,restoredMoves=[]){
     const fresh=createState(lines);
     const validMoves=[];
-    for(const direction of restoredMoves.slice(0,250)){
+    for(const direction of restoredMoves.slice(0,5000)){
       if(!directions[direction]&&!['up','down','left','right'].includes(direction))break;
       if(!move(fresh,direction))break;
       validMoves.push(direction);
