@@ -45,7 +45,7 @@ export async function mountGardenSokoban(){
   let completed=Array.isArray(saved?.completed)?saved.completed.filter(s=>typeof s==='string').slice(-200):[];
   let seen=Array.isArray(saved?.seen)?saved.seen.filter(s=>typeof s==='string').slice(-35):[];
   let map=null,state=null,renderer=null,worker=null,disposed=false,pending=false;
-  let moves=[],startPoint=null,requestId=0;
+  let moves=[],startPoint=null,requestId=0,backupActive=false;
   difficultyPicker.value=difficulty;
   const directions={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right',w:'up',s:'down',a:'left',d:'right'};
   const signature=lines=>lines.join('|');
@@ -66,7 +66,7 @@ export async function mountGardenSokoban(){
     restartButton.disabled=pending;
     newButton.disabled=pending;
     progressLabel.textContent=`${completed.length} completed`;
-    if(!pending)status.textContent=done?'Garden complete! Select New Puzzle for another challenge.':`${difficulty[0].toUpperCase()+difficulty.slice(1)} · ${state.history.length} moves · Every puzzle is solver-checked.`;
+    if(!pending)status.textContent=done?'Garden complete! Select New Puzzle for another challenge.':backupActive?`Backup puzzle · ${state.history.length} moves · Select New Puzzle to retry generation.`:`${difficulty[0].toUpperCase()+difficulty.slice(1)} · ${state.history.length} moves · Every puzzle is solver-checked.`;
   }
   async function applyMap(lines,restoredMoves=[]){
     const fresh=createState(lines);
@@ -92,8 +92,10 @@ export async function mountGardenSokoban(){
     if(disposed)return;
     worker?.terminate();worker=null;
     let lines=result?.map;
+    backupActive=false;
     try{if(!lines)throw new Error('No generated puzzle');createState(lines);}
     catch{
+      backupActive=true;
       const choices=BACKUP[difficulty]?.length?BACKUP[difficulty]:BACKUP.hard;
       lines=choices.find(candidate=>!seen.includes(signature(candidate)))||choices[seedNumber()%choices.length];
       status.textContent='Using a verified backup puzzle.';
