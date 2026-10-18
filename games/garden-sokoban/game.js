@@ -66,7 +66,7 @@ export async function mountGardenSokoban(){
     restartButton.disabled=pending;
     newButton.disabled=pending;
     progressLabel.textContent=`${completed.length} completed`;
-    if(!pending)status.textContent=done?'Garden complete! Select New Puzzle for another challenge.':backupActive?`Backup puzzle · ${state.history.length} moves · Select New Puzzle to retry generation.`:`${difficulty[0].toUpperCase()+difficulty.slice(1)} · ${state.history.length} moves · Every puzzle is solver-checked.`;
+    if(!pending)status.textContent=done?'Garden complete! Select New Puzzle for another challenge.':backupActive?`${difficulty==='expert'?'Verified Hard fallback':'Verified backup'} · ${state.history.length} moves · Select New Puzzle to retry generation.`:`${difficulty[0].toUpperCase()+difficulty.slice(1)} · ${state.history.length} moves · Every puzzle is solver-checked.`;
   }
   async function applyMap(lines,restoredMoves=[]){
     const fresh=createState(lines);
@@ -92,12 +92,6 @@ export async function mountGardenSokoban(){
     if(disposed)return;
     clearTimeout(generationTimer);generationTimer=null;
     worker?.terminate();worker=null;
-    if(!result?.map&&state&&renderer){
-      pending=false;
-      refresh();
-      status.textContent='Could not create a challenging puzzle quickly. Your current puzzle is still available; tap New Puzzle to retry.';
-      return;
-    }
     let lines=result?.map;
     backupActive=false;
     try{if(!lines)throw new Error('No generated puzzle');createState(lines);}
@@ -105,6 +99,7 @@ export async function mountGardenSokoban(){
       backupActive=true;
       const choices=BACKUP[difficulty]?.length?BACKUP[difficulty]:BACKUP.hard;
       lines=choices.find(candidate=>!seen.includes(signature(candidate)))||choices[seedNumber()%choices.length];
+      if(difficulty==='expert')status.textContent='Expert generator reached its time limit; loading a verified Hard puzzle instead.';
       status.textContent='Using a verified backup puzzle.';
     }
     const id=signature(lines);
