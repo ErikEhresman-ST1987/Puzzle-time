@@ -12,6 +12,7 @@ const BACKUP={
     ['########','#    ..#','#  $   #','#  ### #','#  #   #','# $ #$ #','# @  . #','########'],
     ['########','#$@   .#','#*     #','# # #  #','# #  # #','#.#  $ #','#      #','########']
   ],
+  expert:[],
   hard:[
     ['#########','#      .#','# $# #  #','#   #  .#','# $# $* #','#  # #@ #','#     # #','#   .   #','#########'],
     ['#########','#    .  #','# $ $   #','# $   . #','#  #### #','# #@ # .#','#  $#   #','#      .#','#########']
@@ -39,8 +40,8 @@ export async function mountGardenSokoban(){
   const newButton=document.querySelector('#sokoban-new');
   const progressLabel=document.querySelector('#sokoban-progress');
   const saved=readSaved();
-  const validDifficulties=['easy','medium','hard'];
-  let difficulty=validDifficulties.includes(saved?.difficulty)?saved.difficulty:'easy';
+  const validDifficulties=['easy','medium','hard','expert'];
+  let difficulty=validDifficulties.includes(saved?.difficulty)?saved.difficulty:'hard';
   let completed=Array.isArray(saved?.completed)?saved.completed.filter(s=>typeof s==='string').slice(-200):[];
   let seen=Array.isArray(saved?.seen)?saved.seen.filter(s=>typeof s==='string').slice(-35):[];
   let map=null,state=null,renderer=null,worker=null,disposed=false,pending=false;
@@ -93,7 +94,7 @@ export async function mountGardenSokoban(){
     let lines=result?.map;
     try{if(!lines)throw new Error('No generated puzzle');createState(lines);}
     catch{
-      const choices=BACKUP[difficulty];
+      const choices=BACKUP[difficulty]?.length?BACKUP[difficulty]:BACKUP.hard;
       lines=choices.find(candidate=>!seen.includes(signature(candidate)))||choices[seedNumber()%choices.length];
       status.textContent='Using a verified backup puzzle.';
     }
