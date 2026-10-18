@@ -18,6 +18,23 @@ const BACKUP={
     ['#########','#    .  #','# $ $   #','# $   . #','#  #### #','# #@ # .#','#  $#   #','#      .#','#########']
   ]
 };
+// Rotations and reflections preserve Sokoban solvability and push complexity.
+function transformedVariants(maps){
+  const variants=new Map();
+  for(const original of maps){
+    let board=original.slice();
+    for(let rotation=0;rotation<4;rotation++){
+      for(const variant of [board,board.map(row=>[...row].reverse().join(''))]){
+        variants.set(variant.join('|'),variant);
+      }
+      board=board[0].split('').map((_,x)=>board.map(row=>row[x]).reverse().join(''));
+    }
+  }
+  return [...variants.values()];
+}
+const FALLBACK_VARIANTS=Object.fromEntries(Object.entries(BACKUP).map(([level,boards])=>[
+  level,transformedVariants(boards.length?boards:BACKUP.hard)
+]));
 function readSaved(){
   try{
     const data=JSON.parse(localStorage.getItem(STORAGE_KEY));
@@ -43,7 +60,7 @@ export async function mountGardenSokoban(){
   const validDifficulties=['easy','medium','hard','expert'];
   let difficulty=validDifficulties.includes(saved?.difficulty)?saved.difficulty:'hard';
   let completed=Array.isArray(saved?.completed)?saved.completed.filter(s=>typeof s==='string').slice(-200):[];
-  let seen=Array.isArray(saved?.seen)?saved.seen.filter(s=>typeof s==='string').slice(-35):[];
+  let seen=Array.isArray(saved?.seen)?saved.seen.filter(s=>typeof s==='string').slice(-100):[];
   let map=null,state=null,renderer=null,worker=null,disposed=false,pending=false;
   let moves=[],startPoint=null,requestId=0,backupActive=false,generationTimer=null;
   difficultyPicker.value=difficulty;
@@ -97,13 +114,18 @@ export async function mountGardenSokoban(){
     try{if(!lines)throw new Error('No generated puzzle');createState(lines);}
     catch{
       backupActive=true;
-      const choices=BACKUP[difficulty]?.length?BACKUP[difficulty]:BACKUP.hard;
-      lines=choices.find(candidate=>!seen.includes(signature(candidate)))||choices[seedNumber()%choices.length];
-      if(difficulty==='expert')status.textContent='Expert generator reached its time limit; loading a verified Hard puzzle instead.';
-      status.textContent='Using a verified backup puzzle.';
+      const choices=FALLBACK_VARIANTS[difficulty];
+      const unused=choices.filter(candidate=>!seen.includes(signature(candidate))&&signature(candidate)!==signature(map||[]));
+      if(unused.length){lines=unused[seedNumber()%unused.length];}
+      else {
+        pending=false;
+        refresh();
+        status.textContent='No fresh verified puzzles are available at this difficulty. Try Hard or another difficulty.';
+        return;
+      }
     }
     const id=signature(lines);
-    if(!seen.includes(id))seen=[...seen,id].slice(-35);
+    if(!seen.includes(id))seen=[...seen,id].slice(-100);
     applyMap(lines).catch(error=>{
       console.error(error);
       pending=false;
