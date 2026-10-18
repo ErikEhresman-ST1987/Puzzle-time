@@ -30,7 +30,7 @@ async function openSokoban(){
     sokobanMounted=await mountGardenSokoban();
   } catch(err) {
     console.error(err);
-    document.querySelector('#sokoban-status').textContent='Could not load Garden Sokoban. Please reload the page.';
+    document.querySelector('#sokoban-status').textContent='Garden Sokoban error: '+(err?.message||String(err));
   } finally {sokobanOpening=false;}
 }
 function backSokoban(){
