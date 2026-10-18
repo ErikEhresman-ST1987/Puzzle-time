@@ -1,14 +1,31 @@
 import {createState,move,undo,restart,isSolved} from './rules.js';
-import {SOKOBAN_LEVELS} from './levels.js';
 import {createGardenRenderer} from './renderer.js';
 
-const STORAGE_KEY='puzzle-time-garden-sokoban-v1';
-function readProgress(){
+const STORAGE_KEY='puzzle-time-garden-sokoban-v2';
+// Verified backup layouts, used only if a browser cannot start its generation worker.
+const BACKUP={
+  easy:[
+    ['########','#   .  #','# #@#  #','#  $ $ #','# .    #','#    # #','#      #','########'],
+    ['########','#      #','#    . #','# #  $ #','#    # #','# # $  #','#   @ .#','########']
+  ],
+  medium:[
+    ['########','# .  $@#','# # ## #','#  .#  #','#  $ $ #','#.   # #','#      #','########'],
+    ['########','#$@   .#','#*     #','# # #  #','# #  # #','#.#  $ #','#      #','########']
+  ],
+  hard:[
+    ['#########','#      .#','# $# #  #','#   #  .#','# $# $* #','#  # #@ #','#     # #','#   .   #','#########'],
+    ['#########','#    .  #','# $ $   #','# $   . #','#  #### #','# #@ # .#','#  $#   #','#      .#','#########']
+  ]
+};
+function readSaved(){
   try{
-    const saved=JSON.parse(localStorage.getItem(STORAGE_KEY));
-    if(!saved||typeof saved!=='object')return {index:0,completed:[]};
-    return {index:Number.isInteger(saved.index)&&saved.index>=0&&saved.index<SOKOBAN_LEVELS.length?saved.index:0,completed:Array.isArray(saved.completed)?saved.completed.filter(id=>SOKOBAN_LEVELS.some(l=>l.id===id)):[]};
-  }catch{return {index:0,completed:[]};}
+    const data=JSON.parse(localStorage.getItem(STORAGE_KEY));
+    return data&&typeof data==='object'?data:null;
+  }catch{return null;}
+}
+function seedNumber(){
+  if(globalThis.crypto?.getRandomValues)return crypto.getRandomValues(new Uint32Array(1))[0];
+  return Date.now()>>>0;
 }
 export async function mountGardenSokoban(){
   const section=document.querySelector('#sokoban-game');
@@ -16,55 +33,103 @@ export async function mountGardenSokoban(){
   const status=document.querySelector('#sokoban-status');
   const win=document.querySelector('#sokoban-win');
   const undoButton=document.querySelector('#sokoban-undo');
-  const controls=document.querySelector('#sokoban-controls');
-  const picker=document.querySelector('#sokoban-level');
-  const progressLabel=document.querySelector('#sokoban-progress');
-  const previous=document.querySelector('#sokoban-previous');
-  const next=document.querySelector('#sokoban-next');
   const restartButton=document.querySelector('#sokoban-restart');
-  const saved=readProgress();
-  let index=saved.index;
-  const completed=new Set(saved.completed);
-  const state=createState(SOKOBAN_LEVELS[index].map);
-  const renderer=await createGardenRenderer(host,state);
-  let startPoint=null;
+  const controls=document.querySelector('#sokoban-controls');
+  const difficultyPicker=document.querySelector('#sokoban-difficulty');
+  const newButton=document.querySelector('#sokoban-new');
+  const progressLabel=document.querySelector('#sokoban-progress');
+  const saved=readSaved();
+  const validDifficulties=['easy','medium','hard'];
+  let difficulty=validDifficulties.includes(saved?.difficulty)?saved.difficulty:'easy';
+  let completed=Array.isArray(saved?.completed)?saved.completed.filter(s=>typeof s==='string').slice(-200):[];
+  let seen=Array.isArray(saved?.seen)?saved.seen.filter(s=>typeof s==='string').slice(-35):[];
+  let map=null,state=null,renderer=null,worker=null,disposed=false,pending=false;
+  let moves=[],startPoint=null,requestId=0;
+  difficultyPicker.value=difficulty;
   const directions={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right',w:'up',s:'down',a:'left',d:'right'};
-  function persist(){
-    try{localStorage.setItem(STORAGE_KEY,JSON.stringify({index,completed:[...completed]}));}catch{}
-  }
-  function refreshPicker(){
-    picker.replaceChildren();
-    SOKOBAN_LEVELS.forEach((level,i)=>{
-      const option=document.createElement('option');
-      option.value=String(i);
-      option.textContent=(completed.has(level.id)?'✓ ':'')+`${i+1}. ${level.difficulty} — ${level.title}`;
-      picker.appendChild(option);
-    });
-    picker.value=String(index);
-    progressLabel.textContent=`${completed.size} / ${SOKOBAN_LEVELS.length} complete`;
-    previous.disabled=index===0;
-    next.disabled=index===SOKOBAN_LEVELS.length-1;
+  const signature=lines=>lines.join('|');
+  function save(){
+    if(!map)return;
+    try{localStorage.setItem(STORAGE_KEY,JSON.stringify({difficulty,map,moves,completed,seen}));}catch{}
   }
   function refresh(){
+    if(!state||!renderer)return;
     renderer.draw();
-    const done=isSolved(state);
-    if(done&&!completed.has(SOKOBAN_LEVELS[index].id)){
-      completed.add(SOKOBAN_LEVELS[index].id);
-      persist();
+    const done=isSolved(state),id=signature(map);
+    if(done&&!completed.includes(id)){
+      completed=[...completed,id].slice(-200);
+      save();
     }
     win.classList.toggle('hidden',!done);
-    undoButton.disabled=!state.history.length;
-    status.textContent=done?'Garden complete! Choose Next Puzzle to continue.':`Puzzle ${index+1} of ${SOKOBAN_LEVELS.length} · Moves: ${state.history.length}`;
-    refreshPicker();
+    undoButton.disabled=pending||!state.history.length;
+    restartButton.disabled=pending;
+    newButton.disabled=pending;
+    progressLabel.textContent=`${completed.length} completed`;
+    if(!pending)status.textContent=done?'Garden complete! Select New Puzzle for another challenge.':`${difficulty[0].toUpperCase()+difficulty.slice(1)} · ${state.history.length} moves · Every puzzle is solver-checked.`;
   }
-  function loadLevel(nextIndex){
-    if(!Number.isInteger(nextIndex)||nextIndex<0||nextIndex>=SOKOBAN_LEVELS.length)return;
-    index=nextIndex;
-    Object.assign(state,createState(SOKOBAN_LEVELS[index].map));
-    persist();
+  async function applyMap(lines,restoredMoves=[]){
+    const fresh=createState(lines);
+    const validMoves=[];
+    for(const direction of restoredMoves.slice(0,250)){
+      if(!directions[direction]&&!['up','down','left','right'].includes(direction))break;
+      if(!move(fresh,direction))break;
+      validMoves.push(direction);
+    }
+    if(disposed)return;
+    map=lines.slice();
+    moves=validMoves;
+    if(state)Object.assign(state,fresh);else state=fresh;
+    if(!renderer){
+      renderer=await createGardenRenderer(host,state);
+      if(disposed){renderer.destroy();renderer=null;return;}
+    }
+    pending=false;
     refresh();
+    save();
   }
-  function step(direction){if(move(state,direction))refresh();}
+  function finishGeneration(result){
+    if(disposed)return;
+    worker?.terminate();worker=null;
+    let lines=result?.map;
+    try{if(!lines)throw new Error('No generated puzzle');createState(lines);}
+    catch{
+      const choices=BACKUP[difficulty];
+      lines=choices.find(candidate=>!seen.includes(signature(candidate)))||choices[seedNumber()%choices.length];
+      status.textContent='Using a verified backup puzzle.';
+    }
+    const id=signature(lines);
+    if(!seen.includes(id))seen=[...seen,id].slice(-35);
+    applyMap(lines).catch(error=>{
+      console.error(error);
+      pending=false;
+      status.textContent='Could not display puzzle: '+(error?.message||String(error));
+    });
+  }
+  function newPuzzle(){
+    if(disposed)return;
+    requestId++;
+    worker?.terminate();worker=null;
+    pending=true;
+    win.classList.add('hidden');
+    status.textContent='Creating and checking a new garden puzzle…';
+    undoButton.disabled=true;
+    restartButton.disabled=true;
+    newButton.disabled=true;
+    try{
+      worker=new Worker(new URL('./generator-worker.js',import.meta.url),{type:'module'});
+      const thisRequest=requestId;
+      worker.onmessage=event=>{if(thisRequest!==requestId||disposed)return;finishGeneration(event.data.result);};
+      worker.onerror=error=>{console.error('Sokoban generator',error);if(thisRequest===requestId)finishGeneration(null);};
+      worker.postMessage({difficulty,seed:seedNumber(),exclude:seen});
+    }catch(error){
+      console.error('Sokoban worker unavailable',error);
+      finishGeneration(null);
+    }
+  }
+  function step(direction){
+    if(pending||!state)return;
+    if(move(state,direction)){moves.push(direction);refresh();save();}
+  }
   function onControl(event){
     const button=event.target.closest('button[data-direction]');
     if(button)step(button.dataset.direction);
@@ -74,8 +139,7 @@ export async function mountGardenSokoban(){
     if(event.target instanceof HTMLInputElement||event.target instanceof HTMLSelectElement||event.target instanceof HTMLTextAreaElement)return;
     const direction=directions[event.key];
     if(!direction)return;
-    event.preventDefault();
-    step(direction);
+    event.preventDefault();step(direction);
   }
   function onPointerDown(event){
     if(event.button!==undefined&&event.button!==0)return;
@@ -89,11 +153,19 @@ export async function mountGardenSokoban(){
     if(Math.max(Math.abs(dx),Math.abs(dy))<25)return;
     step(Math.abs(dx)>Math.abs(dy)?(dx>0?'right':'left'):(dy>0?'down':'up'));
   }
-  function onUndo(){if(undo(state))refresh();}
-  function onRestart(){restart(state);refresh();}
-  function onPicker(){loadLevel(Number(picker.value));}
-  function onPrevious(){loadLevel(index-1);}
-  function onNext(){loadLevel(index+1);}
+  function onUndo(){
+    if(pending||!state)return;
+    if(undo(state)){moves.pop();refresh();save();}
+  }
+  function onRestart(){
+    if(pending||!state)return;
+    restart(state);moves=[];refresh();save();
+  }
+  function onDifficulty(){
+    if(!validDifficulties.includes(difficultyPicker.value))return;
+    difficulty=difficultyPicker.value;
+    newPuzzle();
+  }
   controls.addEventListener('click',onControl);
   document.addEventListener('keydown',onKey);
   host.addEventListener('pointerdown',onPointerDown);
@@ -101,11 +173,18 @@ export async function mountGardenSokoban(){
   host.addEventListener('pointercancel',onPointerCancel);
   undoButton.addEventListener('click',onUndo);
   restartButton.addEventListener('click',onRestart);
-  picker.addEventListener('change',onPicker);
-  previous.addEventListener('click',onPrevious);
-  next.addEventListener('click',onNext);
-  refresh();
+  difficultyPicker.addEventListener('change',onDifficulty);
+  newButton.addEventListener('click',newPuzzle);
+  progressLabel.textContent=`${completed.length} completed`;
+  if(Array.isArray(saved?.map)){
+    try{
+      createState(saved.map);
+      await applyMap(saved.map,Array.isArray(saved.moves)?saved.moves:[]);
+    }catch(error){console.warn('Ignoring invalid saved garden puzzle',error);newPuzzle();}
+  }else newPuzzle();
   return {restart:onRestart,destroy(){
+    disposed=true;requestId++;
+    worker?.terminate();worker=null;
     controls.removeEventListener('click',onControl);
     document.removeEventListener('keydown',onKey);
     host.removeEventListener('pointerdown',onPointerDown);
@@ -113,10 +192,9 @@ export async function mountGardenSokoban(){
     host.removeEventListener('pointercancel',onPointerCancel);
     undoButton.removeEventListener('click',onUndo);
     restartButton.removeEventListener('click',onRestart);
-    picker.removeEventListener('change',onPicker);
-    previous.removeEventListener('click',onPrevious);
-    next.removeEventListener('click',onNext);
+    difficultyPicker.removeEventListener('change',onDifficulty);
+    newButton.removeEventListener('click',newPuzzle);
     win.classList.add('hidden');
-    renderer.destroy();
+    renderer?.destroy();
   }};
 }
