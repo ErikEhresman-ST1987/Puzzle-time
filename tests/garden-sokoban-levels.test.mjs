@@ -58,8 +58,8 @@ test('seeded generation is reproducible, nontrivial and independently solvable',
 });
 test('verified backup layouts have meaningful solutions',()=>{
   const backups={
-    easy:['########','#   .  #','# #@#  #','#  $ $ #','# .    #','#    # #','#      #','########'],
-    medium:['########','# .  $@#','# # ## #','#  .#  #','#  $ $ #','#.   # #','#      #','########'],
+    easy:['########','#      #','#  ..  #','# #  # #','# $    #','# #  $@#','#      #','########'],
+    medium:['########','#    ..#','#  $   #','#  ### #','#  #   #','# $ #$ #','# @  . #','########'],
     hard:['#########','#      .#','# $# #  #','#   #  .#','# $# $* #','#  # #@ #','#     # #','#   .   #','#########']
   };
   for(const [difficulty,map] of Object.entries(backups)){
