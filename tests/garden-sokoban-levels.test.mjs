@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createState,isSolved,parseLevel} from '../games/garden-sokoban/rules.js';
 import {generateSokoban,solveSokoban,SOKOBAN_CONFIG,canonicalSokobanKey} from '../games/garden-sokoban/generator.js';
+import {HARD_VARIETY_POOL} from '../games/garden-sokoban/hard-variety-pool.js';
 
 const DELTAS=[-100,100,-1,1];
 function forwardReachable(start,crates,walls){
@@ -82,4 +83,24 @@ test('rotations and reflections are considered the same puzzle',()=>{
 test('Hard variety board is 12x12 and retains five crates',()=>{
   assert.equal(SOKOBAN_CONFIG.hard.size,12);
   assert.equal(SOKOBAN_CONFIG.hard.crates,5);
+});
+
+test('prevalidated Hard reserve contains at least 40 distinct 12x12 boards',()=>{
+  assert.ok(HARD_VARIETY_POOL.length>=40);
+  const keys=new Set();
+  for(const p of HARD_VARIETY_POOL){
+    const board=createState(p.map);
+    assert.equal(board.width,12);
+    assert.equal(board.height,12);
+    assert.equal(board.crates.size,5);
+    assert.equal(board.targets.size,5);
+    assert.equal(isSolved(board),false);
+    const key=canonicalSokobanKey(p.map);
+    assert.ok(!keys.has(key),'symmetry-equivalent reserve puzzle');
+    keys.add(key);
+    assert.ok(p.pushes>=14,'reserve puzzle must meet minimum push threshold');
+  }
+  for(const p of HARD_VARIETY_POOL.slice(0,5)){
+    assert.equal(independentMinimumPushes(p.map),p.pushes,'independent solver must confirm reserve rating');
+  }
 });
