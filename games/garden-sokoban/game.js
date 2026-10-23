@@ -1,5 +1,6 @@
 import {createState,move,undo,restart,isSolved} from './rules.js';
 import {createGardenRenderer} from './renderer.js';
+import {canonicalSokobanKey} from './generator.js';
 
 const STORAGE_KEY='puzzle-time-garden-sokoban-v2';
 // Verified backup layouts, used only if a browser cannot start its generation worker.
@@ -65,6 +66,7 @@ export async function mountGardenSokoban(){
   difficultyPicker.value=difficulty;
   const directions={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right',w:'up',s:'down',a:'left',d:'right'};
   const signature=lines=>lines.join('|');
+  const equivalent=lines=>canonicalSokobanKey(lines);
   function save(){
     if(!map)return;
     try{localStorage.setItem(STORAGE_KEY,JSON.stringify({difficulty,map,moves,completed,seen}));}catch{}
@@ -114,7 +116,9 @@ export async function mountGardenSokoban(){
     catch{
       backupActive=true;
       const choices=FALLBACK_VARIANTS[difficulty];
-      const unused=choices.filter(candidate=>!seen.includes(signature(candidate))&&signature(candidate)!==signature(map||[]));
+      const seenKeys=new Set(seen.map(s=>equivalent(s.split('|'))));
+      if(map)seenKeys.add(equivalent(map));
+      const unused=choices.filter(candidate=>!seenKeys.has(equivalent(candidate)));
       if(unused.length){lines=unused[seedNumber()%unused.length];}
       else {
         pending=false;
@@ -148,7 +152,7 @@ export async function mountGardenSokoban(){
       generationTimer=setTimeout(()=>{if(thisRequest===requestId&&!disposed)finishGeneration(null);},4000);
       worker.onmessage=event=>{if(thisRequest!==requestId||disposed)return;finishGeneration(event.data.result);};
       worker.onerror=error=>{console.error('Sokoban generator',error);if(thisRequest===requestId)finishGeneration(null);};
-      worker.postMessage({difficulty,seed:seedNumber(),exclude:seen});
+      worker.postMessage({difficulty,seed:seedNumber(),exclude:seen.map(s=>equivalent(s.split('|')))});
     }catch(error){
       console.error('Sokoban worker unavailable',error);
       finishGeneration(null);
