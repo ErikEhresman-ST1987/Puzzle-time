@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createState,isSolved,parseLevel} from '../games/garden-sokoban/rules.js';
-import {generateSokoban,solveSokoban,SOKOBAN_CONFIG} from '../games/garden-sokoban/generator.js';
+import {generateSokoban,solveSokoban,SOKOBAN_CONFIG,canonicalSokobanKey} from '../games/garden-sokoban/generator.js';
 
 const DELTAS=[-100,100,-1,1];
 function forwardReachable(start,crates,walls){
@@ -70,4 +70,16 @@ test('verified backup layouts have meaningful solutions',()=>{
     const min=independentMinimumPushes(map);
     assert.ok(min!==null&&min>=1,`backup ${difficulty} must be solvable`);
   }
+});
+
+test('rotations and reflections are considered the same puzzle',()=>{
+  const map=['#####','# @ #','# $ #','# . #','#####'];
+  const mirrored=map.map(row=>[...row].reverse().join(''));
+  const rotated=map[0].split('').map((_,x)=>map.map(row=>row[x]).reverse().join(''));
+  assert.equal(canonicalSokobanKey(map),canonicalSokobanKey(mirrored));
+  assert.equal(canonicalSokobanKey(map),canonicalSokobanKey(rotated));
+});
+test('Hard variety board is 12x12 and retains five crates',()=>{
+  assert.equal(SOKOBAN_CONFIG.hard.size,12);
+  assert.equal(SOKOBAN_CONFIG.hard.crates,5);
 });
