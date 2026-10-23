@@ -8,7 +8,7 @@ On-demand Expert generation repeatedly exceeded Safari's time budget and reused 
 ## Candidate inventory
 - 30 canonical-unique 12×12 layouts with six crates and six goals.
 - Pre-generated offline from a reverse-pull generator with randomized walls.
-- Every candidate was re-parsed and independently re-solved in a separate verification pass using the repository's A* solver with an increased search limit.
+- Every candidate was re-parsed and re-solved in a separate verification pass using the repository's A* solver with an increased search limit.
 - Shortest solution lengths: 16–21 crate pushes.
 - Rotation/reflection duplicates excluded by canonical map signature.
 - Automated regression test: `tests/garden-sokoban-expert-library.test.mjs`.
