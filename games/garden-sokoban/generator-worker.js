@@ -1,5 +1,5 @@
-import {generateSokoban,canonicalSokobanKey} from './generator.js';
-import {HARD_VARIETY_POOL} from './hard-variety-pool.js';
+import {generateSokoban,canonicalSokobanKey} from './generator.js?v=2';
+import {HARD_VARIETY_POOL} from './hard-variety-pool.js?v=1';
 self.onmessage=({data})=>{
   const {difficulty,seed,exclude=[]}=data;
   const rejected=new Set(exclude);
