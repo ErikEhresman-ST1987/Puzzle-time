@@ -4,7 +4,7 @@ const DIR=[-100,100,-1,1];
 export const SOKOBAN_CONFIG={
   easy:{size:8,crates:2,walls:3,pulls:12,minPushes:7,maxStates:3500,attempts:28,minTurns:0,minSwitches:0},
   medium:{size:9,crates:4,walls:7,pulls:40,minPushes:14,maxStates:4500,attempts:32,minTurns:3,minSwitches:2},
-  hard:{size:12,crates:5,walls:17,pulls:65,minPushes:18,maxStates:6500,attempts:38,minTurns:3,minSwitches:3}
+  hard:{size:12,crates:5,walls:12,pulls:45,minPushes:14,maxStates:3000,attempts:20,minTurns:1,minSwitches:3}
 };
 function rng(seed){let x=(seed>>>0)||0x9e3779b9;return ()=>{x^=x<<13;x^=x>>>17;x^=x<<5;return (x>>>0)/4294967296;};}
 function shuffle(a,random){for(let i=a.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
