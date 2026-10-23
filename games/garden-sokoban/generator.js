@@ -4,7 +4,7 @@ const DIR=[-100,100,-1,1];
 export const SOKOBAN_CONFIG={
   easy:{size:8,crates:2,walls:3,pulls:12,minPushes:7,maxStates:3500,attempts:28,minTurns:0,minSwitches:0},
   medium:{size:9,crates:4,walls:7,pulls:40,minPushes:14,maxStates:4500,attempts:32,minTurns:3,minSwitches:2},
-  hard:{size:10,crates:5,walls:9,pulls:65,minPushes:20,maxStates:6500,attempts:38,minTurns:5,minSwitches:4}
+  hard:{size:12,crates:5,walls:12,pulls:45,minPushes:14,maxStates:3000,attempts:20,minTurns:1,minSwitches:3}
 };
 function rng(seed){let x=(seed>>>0)||0x9e3779b9;return ()=>{x^=x<<13;x^=x>>>17;x^=x<<5;return (x>>>0)/4294967296;};}
 function shuffle(a,random){for(let i=a.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
@@ -13,6 +13,19 @@ function build(random,cfg){
   const size=cfg.size,walls=new Set(),open=[];
   for(let y=0;y<size;y++)for(let x=0;x<size;x++){const id=y*100+x;if(!x||!y||x===size-1||y===size-1)walls.add(id);else open.push(id);}
   const spots=shuffle(open.slice(),random);let placed=0;
+  // Hard boards mix short wall runs and isolated obstacles rather than using only scatter.
+  if(size>=12){
+    const runs=2+Math.floor(random()*3);
+    for(let i=0;i<runs;i++){
+      const horizontal=random()<.5;
+      const x=2+Math.floor(random()*(size-5)),y=2+Math.floor(random()*(size-5));
+      const length=2+Math.floor(random()*3);
+      for(let j=0;j<length&&placed<cfg.walls;j++){
+        const p=(y+(horizontal?0:j))*100+x+(horizontal?j:0);
+        if(!walls.has(p)){walls.add(p);placed++;}
+      }
+    }
+  }
   for(const p of spots){if(placed>=cfg.walls)break;const x=p%100,y=Math.floor(p/100);if(x<=1||x>=size-2||y<=1||y>=size-2)continue;walls.add(p);placed++;}
   const floor=open.filter(p=>!walls.has(p));
   const start=floor[Math.floor(random()*floor.length)],area=reachable(start,new Set(),walls);
@@ -127,4 +140,16 @@ export function generateSokoban(difficulty='medium',seed=1,options={}){
     }
   }
   return null;
+}
+
+// Dihedral canonical form: rotations/reflections are one puzzle, not eight.
+export function canonicalSokobanKey(map){
+  let board=map.map(row=>row.replace('@',' ').replace('+','.'));
+  const variants=[];
+  for(let rotation=0;rotation<4;rotation++){
+    variants.push(board.join('|'));
+    variants.push(board.map(row=>[...row].reverse().join('')).join('|'));
+    board=board[0].split('').map((_,x)=>board.map(row=>row[x]).reverse().join(''));
+  }
+  return variants.sort()[0];
 }
