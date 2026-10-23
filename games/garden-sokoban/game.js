@@ -1,6 +1,6 @@
 import {createState,move,undo,restart,isSolved} from './rules.js';
 import {createGardenRenderer} from './renderer.js';
-import {canonicalSokobanKey} from './generator.js';
+import {canonicalSokobanKey} from './generator.js?v=2';
 
 const STORAGE_KEY='puzzle-time-garden-sokoban-v2';
 // Verified backup layouts, used only if a browser cannot start its generation worker.
@@ -147,7 +147,7 @@ export async function mountGardenSokoban(){
     restartButton.disabled=true;
     newButton.disabled=true;
     try{
-      worker=new Worker(new URL('./generator-worker.js',import.meta.url),{type:'module'});
+      worker=new Worker(new URL('./generator-worker.js?v=2',import.meta.url),{type:'module'});
       const thisRequest=requestId;
       generationTimer=setTimeout(()=>{if(thisRequest===requestId&&!disposed)finishGeneration(null);},4000);
       worker.onmessage=event=>{if(thisRequest!==requestId||disposed)return;finishGeneration(event.data.result);};
