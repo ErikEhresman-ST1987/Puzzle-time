@@ -1,4 +1,5 @@
-const PALETTE = {A:0xff827f,B:0xffd26e,C:0x70d8ce};
+// Each generated color must have a distinct visible color, including Expert (A-J).
+const PALETTE = {A:0xff827f,B:0xffd26e,C:0x70d8ce,D:0x9c8bff,E:0x6acb7c,F:0xffa55b,G:0x59b6ff,H:0xf27cc7,I:0xd8e66a,J:0xb78a60,K:0xe5e5e5,L:0x48a7a1};
 export async function createColorSortRenderer(host, state) {
   let currentState=state;
   const PIXI=window.PIXI;
