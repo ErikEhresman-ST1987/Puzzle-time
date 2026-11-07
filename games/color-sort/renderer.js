@@ -32,9 +32,12 @@ export async function createColorSortRenderer(host, state) {
       graphics.roundRect(left,top,tubeW,tubeH,Math.min(17,tubeW*.25)).fill({color:0x8ab1d2,alpha:.10});
       graphics.moveTo(left,top).lineTo(left,top+tubeH-16).quadraticCurveTo(left,top+tubeH,left+16,top+tubeH).lineTo(left+tubeW-16,top+tubeH).quadraticCurveTo(left+tubeW,top+tubeH,left+tubeW,top).stroke({color:selected===i?0xffd98b:0x94b5d0,width:3,cap:'round'});
       const gap=3,ballR=Math.min(radius,(tubeH-24)/9);
+      const topColor=state.tubes[i].at(-1);
+      let runStart=state.tubes[i].length-1;
+      while(runStart>0&&state.tubes[i][runStart-1]===topColor)runStart--;
       state.tubes[i].forEach((c,j)=>{
         if(animation&&animation.destination===i&&j>=state.tubes[i].length-animation.count)return;
-        const cy=top+tubeH-12-ballR-j*(2*ballR+gap)-(selected===i&&j===state.tubes[i].length-1?5:0);
+        const cy=top+tubeH-12-ballR-j*(2*ballR+gap)-(selected===i&&j>=runStart?6:0);
         graphics.circle(x,cy+2,ballR).fill({color:0x09182b,alpha:.3});
         graphics.circle(x,cy,ballR).fill(PALETTE[c]??0xc2b3ed);
         graphics.circle(x-ballR*.32,cy-ballR*.37,ballR*.32).fill({color:0xffffff,alpha:.35});
