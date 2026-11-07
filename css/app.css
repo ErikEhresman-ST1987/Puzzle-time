@@ -67,3 +67,11 @@
 .sokoban-level-picker select{flex:1;min-width:190px;max-width:100%;padding:12px;border:1px solid #87ad88;border-radius:12px;background:#254d3e;color:#fff;font:inherit}
 #sokoban-progress{font-size:12px;color:#a8d4b2}
 #sokoban-previous:disabled,#sokoban-next:disabled{opacity:.45;cursor:default}
+
+/* Color Sort — isolated first playable increment */
+.home .color-sort-card{margin-top:16px;background:linear-gradient(120deg,#4a3b6d,#293e60);border-color:#8779a8}
+.color-sort-icon{font-size:26px;letter-spacing:0;line-height:1.25;background:#1c2847}
+.color-sort-wrap{width:min(100%,540px);background:#14243c;border-color:#7181a9}
+#color-sort-board{width:100%;height:clamp(280px,65vw,330px);touch-action:manipulation;overflow:hidden;border-radius:13px}
+#color-sort-board canvas{display:block;width:100%;height:100%;touch-action:manipulation}
+@media(max-width:390px){#color-sort-board{height:400px}}
