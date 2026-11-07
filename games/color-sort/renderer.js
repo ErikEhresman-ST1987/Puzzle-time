@@ -1,5 +1,6 @@
 const PALETTE = {A:0xff827f,B:0xffd26e,C:0x70d8ce};
 export async function createColorSortRenderer(host, state) {
+  let currentState=state;
   const PIXI=window.PIXI;
   if(!PIXI)throw Error('PixiJS unavailable');
   const app=new PIXI.Application();
@@ -10,13 +11,13 @@ export async function createColorSortRenderer(host, state) {
   let selected=null,animation=null,alive=true,raf=0;
   let positions=[];
   function geometry() {
-    const w=host.clientWidth,h=host.clientHeight,n=state.tubes.length;
-    const columns=w<390?3:5,rows=Math.ceil(n/columns);
+    const w=host.clientWidth,h=host.clientHeight,n=currentState.tubes.length;
+    const columns=w<390?3:w<560?4:5,rows=Math.ceil(n/columns);
     const spacing=w/columns;
     const tubeW=Math.min(spacing*.65,65);
     const tubeH=Math.min((h-24)/rows*.78,200);
     const radius=Math.min(tubeW*.32,tubeH/10);
-    positions=state.tubes.map((_,i)=>{
+    positions=currentState.tubes.map((_,i)=>{
       const row=Math.floor(i/columns),col=i%columns;
       const used=Math.min(columns,n-row*columns);
       return {x:w/2+(col-(used-1)/2)*spacing,y:(row+.5)*h/rows,tubeW,tubeH,radius};
@@ -32,11 +33,11 @@ export async function createColorSortRenderer(host, state) {
       graphics.roundRect(left,top,tubeW,tubeH,Math.min(17,tubeW*.25)).fill({color:0x8ab1d2,alpha:.10});
       graphics.moveTo(left,top).lineTo(left,top+tubeH-16).quadraticCurveTo(left,top+tubeH,left+16,top+tubeH).lineTo(left+tubeW-16,top+tubeH).quadraticCurveTo(left+tubeW,top+tubeH,left+tubeW,top).stroke({color:selected===i?0xffd98b:0x94b5d0,width:3,cap:'round'});
       const gap=3,ballR=Math.min(radius,(tubeH-24)/9);
-      const topColor=state.tubes[i].at(-1);
-      let runStart=state.tubes[i].length-1;
-      while(runStart>0&&state.tubes[i][runStart-1]===topColor)runStart--;
-      state.tubes[i].forEach((c,j)=>{
-        if(animation&&animation.destination===i&&j>=state.tubes[i].length-animation.count)return;
+      const topColor=currentState.tubes[i].at(-1);
+      let runStart=currentState.tubes[i].length-1;
+      while(runStart>0&&currentState.tubes[i][runStart-1]===topColor)runStart--;
+      currentState.tubes[i].forEach((c,j)=>{
+        if(animation&&animation.destination===i&&j>=currentState.tubes[i].length-animation.count)return;
         const cy=top+tubeH-12-ballR-j*(2*ballR+gap)-(selected===i&&j>=runStart?6:0);
         graphics.circle(x,cy+2,ballR).fill({color:0x09182b,alpha:.3});
         graphics.circle(x,cy,ballR).fill(PALETTE[c]??0xc2b3ed);
@@ -49,8 +50,8 @@ export async function createColorSortRenderer(host, state) {
       const progress=animation.progress,eased=progress*progress*(3-2*progress);
       const ballR=Math.min(a.radius,(a.tubeH-24)/9);
       const spacing=2*ballR+3;
-      const startY=a.y+a.tubeH/2-12-ballR-state.tubes[animation.source].length*spacing;
-      const endY=b.y+b.tubeH/2-12-ballR-(state.tubes[animation.destination].length-animation.count)*spacing;
+      const startY=a.y+a.tubeH/2-12-ballR-currentState.tubes[animation.source].length*spacing;
+      const endY=b.y+b.tubeH/2-12-ballR-(currentState.tubes[animation.destination].length-animation.count)*spacing;
       for(let j=0;j<animation.count;j++){
         const x=a.x+(b.x-a.x)*eased;
         const y=startY+(endY-startY)*eased-j*spacing-Math.sin(progress*Math.PI)*Math.min(34,a.tubeH*.25);
@@ -84,5 +85,5 @@ export async function createColorSortRenderer(host, state) {
       raf=requestAnimationFrame(tick);
     });
   }
-  return {draw,tubeAt,transfer,setSelected(i){selected=i;draw();},destroy(){alive=false;cancelAnimationFrame(raf);observer.disconnect();app.destroy(true,{children:true});}};
+  return {draw,tubeAt,transfer,setState(next){currentState=next;selected=null;animation=null;draw();},setSelected(i){selected=i;draw();},destroy(){alive=false;cancelAnimationFrame(raf);observer.disconnect();app.destroy(true,{children:true});}};
 }
