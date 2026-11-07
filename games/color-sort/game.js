@@ -1,7 +1,7 @@
 import {createState,move,undo,restart,isSolved} from './rules.js';
 import {OPENING} from './puzzles.js';
 import {generatePuzzle,TIERS} from './generator.js';
-import {createColorSortRenderer} from './renderer.js';
+import {createColorSortRenderer} from './renderer.js?v=2';
 export async function mountColorSort() {
   const section=document.querySelector('#color-sort-game');
   const host=document.querySelector('#color-sort-board');
