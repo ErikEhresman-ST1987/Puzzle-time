@@ -7,7 +7,7 @@ export async function createColorSortRenderer(host, state) {
   host.appendChild(app.canvas);
   const graphics=new PIXI.Graphics();
   app.stage.addChild(graphics);
-  let selected=null,animating=false,alive=true,frame=0,raf=0;
+  let selected=null,animation=null,alive=true,raf=0;
   let positions=[];
   function geometry() {
     const w=host.clientWidth,h=host.clientHeight,n=state.tubes.length;
@@ -33,6 +33,7 @@ export async function createColorSortRenderer(host, state) {
       graphics.moveTo(left,top).lineTo(left,top+tubeH-16).quadraticCurveTo(left,top+tubeH,left+16,top+tubeH).lineTo(left+tubeW-16,top+tubeH).quadraticCurveTo(left+tubeW,top+tubeH,left+tubeW,top).stroke({color:selected===i?0xffd98b:0x94b5d0,width:3,cap:'round'});
       const gap=3,ballR=Math.min(radius,(tubeH-24)/9);
       state.tubes[i].forEach((c,j)=>{
+        if(animation&&animation.destination===i&&j>=state.tubes[i].length-animation.count)return;
         const cy=top+tubeH-12-ballR-j*(2*ballR+gap)-(selected===i&&j===state.tubes[i].length-1?5:0);
         graphics.circle(x,cy+2,ballR).fill({color:0x09182b,alpha:.3});
         graphics.circle(x,cy,ballR).fill(PALETTE[c]??0xc2b3ed);
@@ -40,6 +41,21 @@ export async function createColorSortRenderer(host, state) {
         graphics.circle(x,cy,ballR).stroke({color:0xffffff,alpha:.26,width:1.5});
       });
     });
+    if(animation){
+      const a=positions[animation.source],b=positions[animation.destination];
+      const progress=animation.progress,eased=progress*progress*(3-2*progress);
+      const ballR=Math.min(a.radius,(a.tubeH-24)/9);
+      const spacing=2*ballR+3;
+      const startY=a.y+a.tubeH/2-12-ballR-state.tubes[animation.source].length*spacing;
+      const endY=b.y+b.tubeH/2-12-ballR-(state.tubes[animation.destination].length-animation.count)*spacing;
+      for(let j=0;j<animation.count;j++){
+        const x=a.x+(b.x-a.x)*eased;
+        const y=startY+(endY-startY)*eased-j*spacing-Math.sin(progress*Math.PI)*Math.min(34,a.tubeH*.25);
+        graphics.circle(x,y,ballR).fill(PALETTE[animation.color]??0xc2b3ed);
+        graphics.circle(x-ballR*.32,y-ballR*.37,ballR*.32).fill({color:0xffffff,alpha:.35});
+        graphics.circle(x,y,ballR).stroke({color:0xffffff,alpha:.28,width:1.5});
+      }
+    }
   }
   const observer=new ResizeObserver(draw);observer.observe(host);
   draw();
@@ -48,16 +64,19 @@ export async function createColorSortRenderer(host, state) {
     const x=(event.clientX-r.left)*host.clientWidth/r.width,y=(event.clientY-r.top)*host.clientHeight/r.height;
     return positions.findIndex(p=>Math.abs(x-p.x)<=Math.max(30,p.tubeW*.8)&&Math.abs(y-p.y)<=p.tubeH*.6);
   }
-  // Short lift-and-settle pulse; state is already committed by the controller.
-  function transfer() {
-    animating=true;frame=0;
+  // Animate the committed group from source to destination without changing rules state.
+  function transfer(action) {
     return new Promise(resolve=>{
       const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-      if(reduced||!alive){animating=false;draw();resolve();return;}
-      const tick=()=>{
-        if(!alive){animating=false;resolve();return;}
-        frame++;draw();
-        if(frame>=12){animating=false;resolve();}else raf=requestAnimationFrame(tick);
+      if(reduced||!alive){draw();resolve();return;}
+      const start=performance.now(),duration=260;
+      animation={...action,progress:0};
+      const tick=now=>{
+        if(!alive){animation=null;resolve();return;}
+        animation.progress=Math.min(1,(now-start)/duration);
+        draw();
+        if(animation.progress>=1){animation=null;draw();resolve();}
+        else raf=requestAnimationFrame(tick);
       };
       raf=requestAnimationFrame(tick);
     });
