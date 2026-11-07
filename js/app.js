@@ -42,3 +42,27 @@ function backSokoban(){
 document.querySelector('#open-sokoban').addEventListener('click',openSokoban);
 document.querySelector('#sokoban-back').addEventListener('click',backSokoban);
 document.querySelector('#sokoban-back-bottom').addEventListener('click',backSokoban);
+
+const colorSortSection=document.querySelector('#color-sort-game');
+let colorSortMounted=null,colorSortOpening=false;
+async function openColorSort(){
+  if(colorSortOpening||colorSortMounted)return;
+  colorSortOpening=true;
+  home.classList.add('hidden');
+  colorSortSection.classList.remove('hidden');
+  document.querySelector('#color-sort-status').textContent='Loading Color Sort…';
+  try{
+    const {mountColorSort}=await import('../games/color-sort/game.js?v=1');
+    colorSortMounted=await mountColorSort();
+  }catch(err){
+    console.error(err);
+    document.querySelector('#color-sort-status').textContent='Could not load Color Sort: '+(err?.message||String(err));
+  }finally{colorSortOpening=false;}
+}
+function backColorSort(){
+  colorSortMounted?.destroy();colorSortMounted=null;
+  colorSortSection.classList.add('hidden');home.classList.remove('hidden');
+}
+document.querySelector('#open-color-sort').addEventListener('click',openColorSort);
+document.querySelector('#color-sort-back').addEventListener('click',backColorSort);
+document.querySelector('#color-sort-back-bottom').addEventListener('click',backColorSort);
