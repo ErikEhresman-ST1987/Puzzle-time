@@ -52,7 +52,7 @@ async function openColorSort(){
   colorSortSection.classList.remove('hidden');
   document.querySelector('#color-sort-status').textContent='Loading Color Sort…';
   try{
-    const {mountColorSort}=await import('../games/color-sort/game.js?v=2');
+    const {mountColorSort}=await import('../games/color-sort/game.js?v=3');
     colorSortMounted=await mountColorSort();
   }catch(err){
     console.error(err);
