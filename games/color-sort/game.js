@@ -67,6 +67,8 @@ export async function mountColorSort() {
   difficulty.addEventListener('change',onDifficulty);
   nextButton.addEventListener('click',newPuzzle);
   winNext.addEventListener('click',newPuzzle);
-  refresh();
+  // A restored select value must never disagree with the displayed board.
+  // On opening, generate the selected tier rather than showing the fixed Easy opening.
+  newPuzzle();
   return {destroy(){disposed=true;host.removeEventListener('pointerdown',onTap);undoButton.removeEventListener('click',onUndo);restartButton.removeEventListener('click',onRestart);difficulty.removeEventListener('change',onDifficulty);nextButton.removeEventListener('click',newPuzzle);winNext.removeEventListener('click',newPuzzle);win.classList.add('hidden');renderer.destroy();}};
 }
