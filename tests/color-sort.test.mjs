@@ -18,7 +18,7 @@ test('moves matching groups and undo restores entire transfer', () => {
   assert.deepEqual(snapshot(s),before);
 });
 test('partial group transfer moves only available capacity', () => {
-  const p = createState([['A','B','B'], ['B','B'], ['A','A','A'], ['B'], []]);
+  const p = createState([['A','B','B'], ['B','B'], ['A','A','A'], [], []]);
   const t = move(p,1,0);
   assert.equal(t.count,1);
   assert.deepEqual(p.tubes[0], ['A','B','B','B']);
