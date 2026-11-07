@@ -36,7 +36,7 @@ export async function mountColorSort() {
     }
     selected=null;renderer.setSelected(null);
     busy=true;refresh('Moving '+action.count+' ball'+(action.count===1?'':'s')+'…');
-    renderer.transfer().then(()=>{if(disposed)return;busy=false;refresh();});
+    renderer.transfer(action).then(()=>{if(disposed)return;busy=false;refresh();});
   }
   const onTap=e=>choose(renderer.tubeAt(e));
   const onUndo=()=>{if(busy)return;selected=null;renderer.setSelected(null);undo(state);refresh();};
