@@ -75,3 +75,7 @@
 #color-sort-board{width:100%;height:clamp(280px,65vw,330px);touch-action:manipulation;overflow:hidden;border-radius:13px}
 #color-sort-board canvas{display:block;width:100%;height:100%;touch-action:manipulation}
 @media(max-width:390px){#color-sort-board{height:400px}}
+
+/* Color Sort: multiple rows at higher difficulties */
+#color-sort-board{height:clamp(330px,88vw,610px)}
+@media(max-width:390px){#color-sort-board{height:clamp(400px,120vw,650px)}}
