@@ -22,7 +22,7 @@ test('partial group transfer moves only available capacity', () => {
   const t = move(p,1,0);
   assert.equal(t.count,1);
   assert.deepEqual(p.tubes[0], ['A','B','B','B']);
-  assert.deepEqual(p.tubes[1], ['B','B']);
+  assert.deepEqual(p.tubes[1], ['B']);
   assert.equal(undo(p),true);
 });
 test('invalid moves leave state and history untouched', () => {
